@@ -60,7 +60,12 @@ Unautomatable delivers AI displacement risk assessment paired with actionable ca
 - **False precision in scoring** (Pitfall 4) — Round to 5% increments, use confidence bands
 - **Job title mapping hell** (Pitfall 2) — Build disambiguation UI logic from start, log confidence scores
 
-**Plans:** TBD
+**Plans:**
+1. [Project Setup & Infrastructure Foundation](phases/01/plans/01-project-setup.md) (2-3h, 6 tasks)
+2. [Database Schema & Services Integration](phases/01/plans/02-database-services.md) (3-4h, 6 tasks)
+3. [O*NET Data Pipeline](phases/01/plans/03-onet-pipeline.md) (3-4h, 7 tasks)
+4. [Core Scoring Engine](phases/01/plans/04-scoring-engine.md) (3-4h, 7 tasks)
+5. [Dual-LLM Client & Validation Suite](phases/01/plans/05-llm-validation.md) (3-4h, 7 tasks)
 
 ---
 
