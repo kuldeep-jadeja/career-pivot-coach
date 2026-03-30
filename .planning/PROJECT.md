@@ -85,7 +85,8 @@ Progress tracking is motivational, not mandatory. The plan delivers value whethe
 - **Backend**: MongoDB Atlas for database, NextAuth or similar for authentication
 - **Deployment**: Digital Ocean KVM droplet
 - **Payment**: Stripe (tentative, to be finalized)
-- **LLM Costs**: Stay within Google Gemini free tier limits (minimize API calls)
+- **LLM Costs**: Stay within Google Gemini free tier limits (minimize API calls), Groq as fallback
+- **Infrastructure Costs**: Zero budget — Vercel free tier, Supabase free tier, Resend free tier (100 emails/day)
 - **Data Sources**: O*NET bulk data (free CSV downloads from onetcenter.org), published AI exposure research papers
 - **Pricing Model**: $19 one-time fee (starting point, will validate through usage)
 
@@ -97,10 +98,16 @@ Progress tracking is motivational, not mandatory. The plan delivers value whethe
 | O*NET + published research | Grounded in real occupational data and peer-reviewed AI exposure metrics | — Pending |
 | One-time $19 unlock | Simple pricing, no subscription anxiety, impulse-buy friendly | — Pending |
 | Preview before paywall | Build trust, prove personalization, increase conversion after time investment | — Pending |
-| MongoDB Atlas | Flexible schema for assessments, familiar, easy scaling | — Pending |
+| Generate all 3 paths at once | Show full range of options upfront, better user experience | — Pending |
+| Supabase (PostgreSQL + Auth) | Unified database and auth, simpler than MongoDB + Auth.js separate | — Pending |
+| Vercel free tier deployment | Zero infrastructure cost, native Next.js support, edge functions | — Pending |
+| Gemini + Groq fallback | Free tier LLM with backup, queue strategy for rate limits | — Pending |
+| Resend for email | Free tier (100/day) sufficient for MVP validation | — Pending |
 | Next.js App Router | Modern React framework, server components, easy deployment | — Pending |
 | shadcn/ui components | High-quality, accessible UI components without heavy framework lock-in | — Pending |
 | Dashboard is optional | Plans deliver value without forced engagement, respects user agency | — Pending |
+| Defer admin panel | Use Supabase Dashboard + Stripe Dashboard for MVP monitoring | — Pending |
+| Programmatic SEO pages | Top 50 job titles get dedicated landing pages for organic traffic | — Pending |
 
 ---
-*Last updated: 2026-03-26 after initialization*
+*Last updated: 2026-03-30 after research corrections*
