@@ -36,7 +36,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **AUTH-06**: User can reset password via email link
 - [ ] **AUTH-07**: User session persists across browser refresh
 - [ ] **AUTH-08**: User can update profile settings (name, email, password change)
-- [ ] **AUTH-09**: Anonymous risk score data is automatically linked when user creates account
+- [ ] **AUTH-09**: Anonymous risk score data is automatically linked when user creates account (use session cookie or localStorage ID to track anonymous assessments, merge on account creation)
 
 ### Deeper Assessment (DEEP)
 
@@ -61,7 +61,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **PIVOT-09**: Each path includes industry adoption speed context (Layer 3 from risk scoring)
 - [ ] **PIVOT-10**: Each path includes transferable strengths identification (safe tasks carry over)
 - [ ] **PIVOT-11**: System uses Gemini API (primary) for narrative generation with Groq fallback
-- [ ] **PIVOT-12**: Failed LLM requests are queued for retry (don't block user flow)
+- [ ] **PIVOT-12**: Failed LLM requests (after both Gemini and Groq fail) are queued for retry and user receives email notification when plans are ready (don't block user flow)
 
 ### Payment & Unlock (PAY)
 
@@ -103,8 +103,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **INFRA-08**: Deterministic scoring engine implemented as pure TypeScript functions
 - [ ] **INFRA-09**: Rate limiting on free assessment endpoint (10 per hour per IP)
 - [ ] **INFRA-10**: Error tracking configured (Sentry or similar)
-- [ ] **INFRA-11**: Database schema created in Supabase (users, assessments, pivot_plans, payments)
-- [ ] **INFRA-12**: Gemini API client configured with fallback to Groq API
+- [ ] **INFRA-11**: Database schema created in Supabase (users, assessments, pivot_plans, payments) with Row Level Security (RLS) policies enabled on all tables (users can only access their own data)
+- [ ] **INFRA-12**: Dual-LLM client configured with exact fallback chain: Gemini (primary) → Groq (backup) → queue request and notify user via email when ready
 
 ## v2 Requirements
 
