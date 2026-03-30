@@ -1,0 +1,437 @@
+# Plan 02: Database Schema & Services Integration
+
+**Requirements:** INFRA-02, INFRA-03, INFRA-04, INFRA-11  
+**Estimated Time:** 3-4 hours  
+**Dependencies:** Plan 01 (project setup must be complete)
+
+## Goal
+
+Set up Supabase (PostgreSQL database + Auth), create the complete database schema with Row Level Security (RLS) policies, configure Resend for email, and set up Stripe in test mode. All external services will be configured and verified working.
+
+## Context
+
+**From PHASE-1-CONTEXT.md:**
+- Supabase standard patterns with Row Level Security
+- Tables: `users` (Supabase Auth managed), `assessments`, `pivot_plans`, `payments`, `onet_*`
+- RLS policies: Users can only read/write their own data
+- Hybrid data storage: Static JSON (frontend) + database tables (admin queries)
+
+**From STACK.md:**
+- `@supabase/supabase-js@latest` and `@supabase/ssr@latest` for client
+- Resend free tier: 100 emails/day
+- Stripe with test mode webhooks
+
+**Critical Pitfall (PITFALLS.md):**
+- PII without encryption causes regulatory violations — encrypt salary/location at rest
+
+## Tasks
+
+### Task 1: Create Supabase project and configure Auth
+
+- **Action:** 
+  1. Create Supabase project at supabase.com (free tier)
+  2. Enable Email/Password authentication in Auth settings
+  3. (Optional) Configure Google OAuth provider for future use
+  4. Copy project URL and anon key to `.env.local`
+  5. Install Supabase client: `npm install @supabase/supabase-js@latest @supabase/ssr@latest`
+- **Files:**
+  - `.env.local` (update with real Supabase credentials)
+  - `lib/db/supabase.ts` (implement client initialization)
+  - `lib/auth/config.ts` (auth configuration)
+- **Implementation:**
+  ```typescript
+  // lib/db/supabase.ts
+  import { createBrowserClient } from '@supabase/ssr';
+  
+  export function createClient() {
+    return createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+  }
+  ```
+- **Verification:**
+  - Supabase client initializes without errors
+  - Can connect to database from local dev environment
+  - Auth signup/signin endpoints are accessible
+
+### Task 2: Create database schema with migrations
+
+- **Action:** Create SQL schema file with all required tables. Run via Supabase SQL Editor or migration system.
+- **Files:**
+  - `lib/db/schema.sql` (full schema definition)
+  - `lib/db/migrations/001_initial_schema.sql` (migration file)
+- **Schema:**
+  ```sql
+  -- Users table (extends Supabase Auth)
+  -- Note: auth.users is managed by Supabase Auth
+  -- We create a public.profiles table for additional user data
+  CREATE TABLE public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    display_name TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  -- Assessments (free risk assessments)
+  CREATE TABLE public.assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    anonymous_id TEXT, -- For anonymous users (session-based)
+    job_title TEXT NOT NULL,
+    occupation_code TEXT, -- O*NET SOC code
+    industry TEXT,
+    years_experience INTEGER,
+    risk_score INTEGER CHECK (risk_score >= 0 AND risk_score <= 100),
+    layer_breakdown JSONB, -- { layer1, layer2, layer3, layer4 }
+    confidence TEXT CHECK (confidence IN ('high', 'medium', 'low')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  -- Deeper assessment data (encrypted sensitive fields)
+  CREATE TABLE public.deeper_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID REFERENCES public.assessments(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    skills JSONB, -- Array of skill objects
+    salary_requirements_encrypted TEXT, -- Encrypted
+    location_encrypted TEXT, -- Encrypted
+    time_availability INTEGER, -- Hours per week
+    industry_preferences JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  -- Pivot plans (generated career paths)
+  CREATE TABLE public.pivot_plans (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID REFERENCES public.assessments(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    paths JSONB NOT NULL, -- Array of 3 pivot path objects
+    status TEXT DEFAULT 'preview' CHECK (status IN ('preview', 'unlocked', 'generating', 'failed')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    unlocked_at TIMESTAMPTZ
+  );
+
+  -- Payments (Stripe integration)
+  CREATE TABLE public.payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    assessment_id UUID REFERENCES public.assessments(id) ON DELETE SET NULL,
+    stripe_payment_id TEXT UNIQUE,
+    stripe_checkout_session_id TEXT,
+    amount INTEGER NOT NULL, -- In cents
+    currency TEXT DEFAULT 'usd',
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    completed_at TIMESTAMPTZ
+  );
+
+  -- O*NET reference tables (read-only, populated by data pipeline)
+  CREATE TABLE public.onet_occupations (
+    soc_code TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    alternate_titles JSONB,
+    last_modified DATE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  CREATE TABLE public.onet_tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    soc_code TEXT REFERENCES public.onet_occupations(soc_code) ON DELETE CASCADE,
+    task_id TEXT,
+    description TEXT NOT NULL,
+    importance DECIMAL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  CREATE TABLE public.onet_skills (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    soc_code TEXT REFERENCES public.onet_occupations(soc_code) ON DELETE CASCADE,
+    skill_id TEXT,
+    name TEXT NOT NULL,
+    description TEXT,
+    level DECIMAL,
+    importance DECIMAL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  CREATE TABLE public.onet_work_activities (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    soc_code TEXT REFERENCES public.onet_occupations(soc_code) ON DELETE CASCADE,
+    activity_id TEXT,
+    name TEXT NOT NULL,
+    description TEXT,
+    importance DECIMAL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  -- Indexes for common queries
+  CREATE INDEX idx_assessments_user_id ON public.assessments(user_id);
+  CREATE INDEX idx_assessments_anonymous_id ON public.assessments(anonymous_id);
+  CREATE INDEX idx_pivot_plans_assessment_id ON public.pivot_plans(assessment_id);
+  CREATE INDEX idx_payments_user_id ON public.payments(user_id);
+  CREATE INDEX idx_onet_tasks_soc_code ON public.onet_tasks(soc_code);
+  CREATE INDEX idx_onet_skills_soc_code ON public.onet_skills(soc_code);
+  ```
+- **Verification:**
+  - All tables created in Supabase dashboard
+  - Can insert and query test data
+  - Indexes are created
+
+### Task 3: Implement Row Level Security (RLS) policies
+
+- **Action:** Create RLS policies ensuring users can only access their own data. O*NET tables are public read-only.
+- **Files:**
+  - `lib/db/rls-policies.sql` (RLS policy definitions)
+- **Policies:**
+  ```sql
+  -- Enable RLS on all user-data tables
+  ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.assessments ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.deeper_assessments ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.pivot_plans ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+
+  -- Profiles: Users can read/update only their own profile
+  CREATE POLICY "Users can view own profile" ON public.profiles
+    FOR SELECT USING (auth.uid() = id);
+  CREATE POLICY "Users can update own profile" ON public.profiles
+    FOR UPDATE USING (auth.uid() = id);
+  CREATE POLICY "Users can insert own profile" ON public.profiles
+    FOR INSERT WITH CHECK (auth.uid() = id);
+
+  -- Assessments: Users can access own + anonymous via session
+  CREATE POLICY "Users can view own assessments" ON public.assessments
+    FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL);
+  CREATE POLICY "Users can insert assessments" ON public.assessments
+    FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+  CREATE POLICY "Users can update own assessments" ON public.assessments
+    FOR UPDATE USING (auth.uid() = user_id);
+
+  -- Deeper assessments: Authenticated users only
+  CREATE POLICY "Users can view own deeper assessments" ON public.deeper_assessments
+    FOR SELECT USING (auth.uid() = user_id);
+  CREATE POLICY "Users can insert own deeper assessments" ON public.deeper_assessments
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+  CREATE POLICY "Users can update own deeper assessments" ON public.deeper_assessments
+    FOR UPDATE USING (auth.uid() = user_id);
+
+  -- Pivot plans: Users can access own
+  CREATE POLICY "Users can view own pivot plans" ON public.pivot_plans
+    FOR SELECT USING (auth.uid() = user_id);
+  CREATE POLICY "Service can insert pivot plans" ON public.pivot_plans
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+  CREATE POLICY "Service can update pivot plans" ON public.pivot_plans
+    FOR UPDATE USING (auth.uid() = user_id);
+
+  -- Payments: Users can view own, insert via service role only
+  CREATE POLICY "Users can view own payments" ON public.payments
+    FOR SELECT USING (auth.uid() = user_id);
+
+  -- O*NET tables: Public read-only (no RLS needed, or allow all reads)
+  ALTER TABLE public.onet_occupations ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Anyone can read occupations" ON public.onet_occupations
+    FOR SELECT USING (true);
+
+  ALTER TABLE public.onet_tasks ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Anyone can read tasks" ON public.onet_tasks
+    FOR SELECT USING (true);
+
+  ALTER TABLE public.onet_skills ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Anyone can read skills" ON public.onet_skills
+    FOR SELECT USING (true);
+
+  ALTER TABLE public.onet_work_activities ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Anyone can read work activities" ON public.onet_work_activities
+    FOR SELECT USING (true);
+  ```
+- **Verification:**
+  - Attempt to query another user's assessment → fails
+  - Attempt to query own assessment → succeeds
+  - O*NET data is publicly readable
+
+### Task 4: Configure Resend for transactional email
+
+- **Action:**
+  1. Create Resend account at resend.com (free tier: 100 emails/day)
+  2. Verify domain or use default `onboarding@resend.dev` for testing
+  3. Generate API key and add to `.env.local`
+  4. Install Resend SDK: `npm install resend@latest`
+  5. Create email service wrapper
+- **Files:**
+  - `.env.local` (add RESEND_API_KEY)
+  - `lib/email/resend.ts` (Resend client)
+  - `lib/email/templates.ts` (email templates)
+- **Implementation:**
+  ```typescript
+  // lib/email/resend.ts
+  import { Resend } from 'resend';
+  
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  
+  export async function sendEmail({
+    to,
+    subject,
+    html,
+  }: {
+    to: string;
+    subject: string;
+    html: string;
+  }) {
+    const { data, error } = await resend.emails.send({
+      from: 'Unautomatable <noreply@yourdomain.com>',
+      to,
+      subject,
+      html,
+    });
+    
+    if (error) {
+      console.error('Email send failed:', error);
+      throw error;
+    }
+    
+    return data;
+  }
+  ```
+- **Verification:**
+  - Can send test email from local dev environment
+  - Email arrives in inbox (check spam folder)
+  - No API errors in console
+
+### Task 5: Configure Stripe in test mode
+
+- **Action:**
+  1. Create Stripe account at stripe.com
+  2. Enable test mode (toggle in dashboard)
+  3. Copy test API keys to `.env.local`
+  4. Install Stripe SDK: `npm install stripe@latest`
+  5. Create Stripe client wrapper
+  6. Create webhook endpoint stub
+- **Files:**
+  - `.env.local` (add Stripe keys)
+  - `lib/payment/stripe.ts` (Stripe client)
+  - `app/api/payment/webhook/route.ts` (webhook handler stub)
+- **Implementation:**
+  ```typescript
+  // lib/payment/stripe.ts
+  import Stripe from 'stripe';
+  
+  export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2024-12-18.acacia', // Use latest stable API version
+    typescript: true,
+  });
+  
+  export async function createCheckoutSession({
+    userId,
+    assessmentId,
+    priceInCents = 1900, // $19
+  }: {
+    userId: string;
+    assessmentId: string;
+    priceInCents?: number;
+  }) {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Career Pivot Plans (3 paths)',
+              description: 'Unlock all 3 personalized career pivot plans',
+            },
+            unit_amount: priceInCents,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/pivot-plans?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/pivot-plans?canceled=true`,
+      metadata: {
+        userId,
+        assessmentId,
+      },
+    });
+    
+    return session;
+  }
+  ```
+- **Verification:**
+  - Stripe client initializes without errors
+  - Can create test checkout session
+  - Webhook endpoint is reachable (returns 200)
+
+### Task 6: Create database query utilities
+
+- **Action:** Create typed query functions for common database operations.
+- **Files:**
+  - `lib/db/queries/assessments.ts`
+  - `lib/db/queries/pivot-plans.ts`
+  - `lib/db/queries/payments.ts`
+  - `lib/db/types.ts` (database types)
+- **Implementation:**
+  ```typescript
+  // lib/db/types.ts
+  export interface Assessment {
+    id: string;
+    user_id: string | null;
+    anonymous_id: string | null;
+    job_title: string;
+    occupation_code: string | null;
+    industry: string | null;
+    years_experience: number | null;
+    risk_score: number | null;
+    layer_breakdown: LayerBreakdown | null;
+    confidence: 'high' | 'medium' | 'low' | null;
+    created_at: string;
+    updated_at: string;
+  }
+  
+  export interface LayerBreakdown {
+    layer1: number; // AI exposure
+    layer2: number; // Task automation
+    layer3: number; // Industry speed
+    layer4: number; // Experience
+  }
+  ```
+- **Verification:**
+  - TypeScript types match database schema
+  - Query functions compile without errors
+  - Can perform CRUD operations on assessments table
+
+## Verification Checklist
+
+- [ ] Supabase project created and accessible
+- [ ] All database tables exist with correct columns
+- [ ] RLS policies are enabled and working
+- [ ] Can authenticate user via Supabase Auth
+- [ ] Resend sends test email successfully
+- [ ] Stripe test mode checkout session can be created
+- [ ] Environment variables are properly configured
+- [ ] Database query utilities are typed correctly
+- [ ] Service role key is NOT exposed in client code
+
+## Success Criteria
+
+This plan is complete when:
+1. Database schema is fully deployed to Supabase with all tables and indexes
+2. RLS policies prevent users from accessing other users' data
+3. Resend can send transactional emails from the application
+4. Stripe test mode can create checkout sessions with proper metadata
+5. All service credentials are securely stored in environment variables
+6. Query utilities provide type-safe database access
+
+## Notes
+
+- **SECURITY:** Never expose `SUPABASE_SERVICE_ROLE_KEY` or `STRIPE_SECRET_KEY` in client-side code
+- **RLS Testing:** Use Supabase SQL Editor to test RLS policies with different user contexts
+- **Stripe Webhooks:** Actual webhook testing requires ngrok or similar for local development. Full webhook implementation will be in Phase 5.
+- **Email Domain:** For production, you'll need to verify a domain with Resend. Test mode uses `onboarding@resend.dev`.
+- **Encrypted Fields:** `salary_requirements_encrypted` and `location_encrypted` will use application-level encryption. Implementation details in Phase 3.
+- The O*NET tables will be populated by Plan 03 (data pipeline)
+
+---
+*Plan 02 of 5 for Phase 1: Foundation & Core Scoring*

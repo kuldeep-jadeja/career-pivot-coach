@@ -1,0 +1,200 @@
+# Plan 01: Project Setup & Infrastructure Foundation
+
+**Requirements:** INFRA-01, INFRA-05, INFRA-06  
+**Estimated Time:** 2-3 hours  
+**Dependencies:** None (first plan)
+
+## Goal
+
+Initialize the Next.js application with TypeScript, Tailwind CSS, and shadcn/ui. Configure Vercel deployment and establish the environment variable pattern that all subsequent plans will use.
+
+## Context
+
+**From PHASE-1-CONTEXT.md:**
+- Next.js 15+ with App Router, TypeScript, Tailwind, shadcn/ui
+- Vercel free tier deployment (zero infrastructure cost)
+- `.env.local` for local dev (git-ignored), `.env.example` as template
+- Development workflow: `npm run dev`, `npm run test`, `npm run lint`, `npm run build`
+
+**From STACK.md:**
+- Use `create-next-app@latest` with TypeScript + Tailwind + App Router
+- shadcn/ui for accessible UI components (button, card, dialog, form, input, etc.)
+- Turbopack for improved dev experience
+
+## Tasks
+
+### Task 1: Initialize Next.js project with TypeScript and Tailwind
+
+- **Action:** Run `npx create-next-app@latest career-pivot-coach --typescript --tailwind --app --use-npm`. Accept defaults for ESLint. Delete boilerplate content from `app/page.tsx` and `app/globals.css` (keep Tailwind directives only).
+- **Files:** 
+  - `package.json`
+  - `app/page.tsx`
+  - `app/layout.tsx`
+  - `app/globals.css`
+  - `tsconfig.json`
+  - `tailwind.config.ts`
+  - `next.config.ts`
+- **Verification:** 
+  - `npm run dev` starts without errors
+  - Visit `http://localhost:3000` shows clean page
+  - TypeScript compilation succeeds (`npm run build`)
+
+### Task 2: Configure shadcn/ui component library
+
+- **Action:** Run `npx shadcn@latest init` with defaults (New York style, Zinc base color). Add essential components: `npx shadcn@latest add button card dialog form input label select textarea toast`. Create `/app/_components/ui/` to hold generated components.
+- **Files:**
+  - `components.json`
+  - `app/_components/ui/button.tsx`
+  - `app/_components/ui/card.tsx`
+  - `app/_components/ui/dialog.tsx`
+  - `app/_components/ui/form.tsx`
+  - `app/_components/ui/input.tsx`
+  - `app/_components/ui/label.tsx`
+  - `app/_components/ui/select.tsx`
+  - `app/_components/ui/textarea.tsx`
+  - `app/_components/ui/toast.tsx`
+  - `lib/utils.ts` (cn helper)
+- **Verification:**
+  - Import a Button component in `app/page.tsx` and render it
+  - Button displays correctly with proper Tailwind styling
+  - No TypeScript errors
+
+### Task 3: Create project directory structure
+
+- **Action:** Create the foundational directory structure per ARCHITECTURE.md. Do NOT implement logic yet — just create placeholder files with type stubs or comments indicating purpose.
+- **Files:**
+  ```
+  app/
+    (marketing)/page.tsx          # Placeholder landing page
+    (assessment)/quick-risk/page.tsx  # Placeholder assessment page
+    api/health/route.ts           # Simple health check endpoint
+    _components/                  # Move shadcn ui folder here
+    _actions/                     # Server actions (empty)
+  lib/
+    scoring/                      # Scoring engine (stubs)
+      config.ts                   # Weight configuration
+      types.ts                    # Scoring type definitions
+    db/
+      supabase.ts                 # Supabase client stub
+    llm/
+      types.ts                    # LLM response types
+    utils/
+      validation.ts               # Zod schemas placeholder
+  public/
+    data/                         # O*NET data folder
+      .gitkeep
+  data-processing/
+    scripts/                      # Data processing scripts
+      .gitkeep
+  ```
+- **Verification:**
+  - All directories exist
+  - `npm run build` succeeds
+  - `/api/health` returns `{ status: "ok" }`
+
+### Task 4: Configure environment variables template
+
+- **Action:** Create `.env.example` with all required environment variables (empty placeholders with comments). Create `.env.local` (git-ignored) with local development values where applicable. Add `.env.local` to `.gitignore`.
+- **Files:**
+  - `.env.example`
+  - `.env.local` (local only)
+  - `.gitignore` (updated)
+- **Environment variables to document:**
+  ```
+  # Supabase
+  NEXT_PUBLIC_SUPABASE_URL=
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=
+  SUPABASE_SERVICE_ROLE_KEY=
+  
+  # Stripe
+  STRIPE_SECRET_KEY=
+  STRIPE_WEBHOOK_SECRET=
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+  
+  # LLM APIs
+  GEMINI_API_KEY=
+  GROQ_API_KEY=
+  
+  # Email
+  RESEND_API_KEY=
+  
+  # App
+  NEXT_PUBLIC_APP_URL=http://localhost:3000
+  ```
+- **Verification:**
+  - `.env.example` is committed to git
+  - `.env.local` is NOT in git (`git status` shows it's ignored)
+  - Environment variables are accessible in code via `process.env`
+
+### Task 5: Configure Vercel deployment
+
+- **Action:** Create `vercel.json` for deployment configuration. Set up build settings. Document deployment process in README.md.
+- **Files:**
+  - `vercel.json`
+  - `README.md` (create with setup + deployment instructions)
+- **Vercel config:**
+  ```json
+  {
+    "framework": "nextjs",
+    "buildCommand": "npm run build",
+    "devCommand": "npm run dev",
+    "installCommand": "npm install"
+  }
+  ```
+- **Verification:**
+  - `vercel.json` validates (no syntax errors)
+  - README includes: local setup instructions, env var setup, deployment steps
+  - (Optional) Test `vercel --prod` deploys successfully if Vercel CLI configured
+
+### Task 6: Add development dependencies and scripts
+
+- **Action:** Install dev dependencies: `npm install -D vitest @testing-library/react @testing-library/dom jsdom`. Add npm scripts for testing. Create initial test configuration.
+- **Files:**
+  - `package.json` (updated scripts)
+  - `vitest.config.ts`
+  - `lib/scoring/__tests__/.gitkeep`
+- **Scripts to add:**
+  ```json
+  {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  }
+  ```
+- **Verification:**
+  - `npm run test` runs without errors (no tests yet = passes)
+  - `npm run build` still succeeds
+  - `npm run lint` passes
+
+## Verification Checklist
+
+- [ ] `npm run dev` starts Next.js dev server on port 3000
+- [ ] `npm run build` completes without TypeScript or ESLint errors
+- [ ] `npm run test` runs Vitest successfully
+- [ ] shadcn/ui Button renders correctly on homepage
+- [ ] `/api/health` endpoint returns `{ "status": "ok" }`
+- [ ] `.env.example` exists and is committed
+- [ ] `.env.local` is git-ignored
+- [ ] `vercel.json` exists with correct configuration
+- [ ] README.md documents setup process
+- [ ] Directory structure matches ARCHITECTURE.md
+
+## Success Criteria
+
+This plan is complete when:
+1. A new developer can clone the repo, run `npm install`, copy `.env.example` to `.env.local`, and start developing immediately with `npm run dev`
+2. The project builds and passes linting with zero errors
+3. shadcn/ui components are installed and working
+4. Vercel deployment configuration is ready (actual deployment optional until services are configured)
+5. Test infrastructure (Vitest) is configured and ready for Plan 04
+
+## Notes
+
+- **Do NOT** set up actual Supabase/Stripe/LLM connections in this plan — just create the file stubs and env var templates
+- **Do NOT** implement any business logic — this is purely infrastructure
+- shadcn/ui uses a copy-paste model (not npm package) — components are added to your codebase directly
+- Vercel deployment can be tested with `vercel dev` locally before pushing to production
+- The health check endpoint (`/api/health`) is useful for deployment verification and monitoring
+
+---
+*Plan 01 of 5 for Phase 1: Foundation & Core Scoring*
