@@ -1,7 +1,7 @@
 # Stack Research
 
 **Domain:** AI Career Assessment & Transition Planning Web Application
-**Researched:** 2025-01-26
+**Updated:** 2026-03-30
 **Confidence:** HIGH
 
 ## Recommended Stack
@@ -10,43 +10,61 @@
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| **Next.js** | 16.2.x | Full-stack React framework with App Router | Industry standard for 2025, excellent Server Components support, built-in API routes, edge runtime support. App Router is now stable and recommended for new projects. Superior developer experience with Turbopack and automatic optimizations. |
-| **React** | 19.2.x | UI library | Latest stable with Server Components, Actions, and improved concurrent rendering. React 19 brings native form handling and async transitions perfect for multi-step assessments. |
-| **TypeScript** | 6.0.x | Type-safe JavaScript | Non-negotiable for production apps. Catches 80%+ of bugs at compile time. Version 6.0 brings improved type inference and performance. |
-| **Tailwind CSS** | 4.2.x | Utility-first CSS framework | Version 4.x is a complete rewrite with native CSS engine (no PostCSS), 2-3x faster builds, and improved JIT. Standard for rapid UI development in 2025. |
-| **MongoDB Atlas** | 7.1.x (driver) | NoSQL database | Flexible schema ideal for evolving assessment structures, excellent free tier, built-in search capabilities. Driver v7.x has stable API with full TypeScript support. |
-| **Auth.js (NextAuth v5)** | 1.5.x | Authentication | NextAuth has rebranded to Auth.js with complete rewrite for Next.js 15+. Better TypeScript support, middleware-first design, improved session handling. MongoDB adapter available. |
+| **Next.js** | @latest | Full-stack React framework with App Router | Industry standard, excellent Server Components support, built-in API routes, edge runtime support. App Router is stable and recommended for new projects. Native Vercel deployment. |
+| **React** | @latest | UI library | Latest stable with Server Components, Actions, and improved concurrent rendering. Native form handling and async transitions perfect for multi-step assessments. |
+| **TypeScript** | @latest | Type-safe JavaScript | Non-negotiable for production apps. Catches majority of bugs at compile time. Improved type inference and performance. |
+| **Tailwind CSS** | @latest | Utility-first CSS framework | Fast builds, improved JIT. Standard for rapid UI development. |
+| **Supabase** | @latest | PostgreSQL database + Auth | Unified solution for database and authentication. Simpler architecture, fewer dependencies. Excellent free tier, built-in row-level security, real-time subscriptions. |
+| **Resend** | @latest | Transactional email | Free tier: 100 emails/day. Perfect for account verification, payment receipts, pivot plan delivery. Modern API, excellent DX. |
 
-**Confidence Level:** HIGH — All versions verified via npm registry (2025-01-26). Next.js 16 and React 19 are current stable releases. Tailwind 4 is production-ready with major performance improvements.
+**Version Strategy:** Use @latest for all packages and verify current stable versions on npm during installation. Research version numbers may be outdated.
 
 ### Supporting Libraries
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| **shadcn/ui** | Latest | Pre-built accessible UI components | Use for dialogs, forms, dropdowns, cards. Built on Radix UI primitives. Copy-paste components (not npm package), so always current. Handles accessibility out of the box. |
-| **@radix-ui/react-*** | 1.1.x | Unstyled accessible primitives | Foundation for shadcn/ui. Use directly if customizing beyond shadcn patterns. |
-| **Zod** | 4.3.x | Schema validation | Essential for form validation, API input validation, and type-safe MongoDB schemas. Works perfectly with React Hook Form. |
-| **React Hook Form** | 7.72.x | Form state management | Industry standard for complex multi-step forms. Minimal re-renders, excellent DX. Use with @hookform/resolvers for Zod integration. |
-| **@hookform/resolvers** | 5.2.x | Validation resolver bridge | Connects Zod schemas to React Hook Form. |
-| **Stripe** | 21.0.x | Payment processing | One-time payments with Checkout Sessions. Version 21.x has improved TypeScript types and webhook handling. |
-| **@google/generative-ai** | 0.24.x | Google Gemini SDK | For narrative generation. Free tier includes 1500 requests/day. Simple promise-based API. |
-| **Recharts** | 3.8.x | Data visualization | Best React charting library for career path visualization, progress charts, risk breakdowns. Server-side rendering compatible. |
-| **date-fns** | 4.1.x | Date manipulation | Lightweight (vs Moment.js), tree-shakeable, immutable. Perfect for 90-day timeline calculations. |
-| **bcryptjs** | 3.0.x | Password hashing | Pure JavaScript bcrypt (no native dependencies). Use with Auth.js credentials provider. |
-| **sharp** | 0.34.x | Image processing | Node.js native image processing for shareable card generation. Faster and more memory efficient than canvas-based solutions. |
-| **html2canvas** | 1.4.x | DOM to canvas | For client-side shareable card generation (downloadable images). Works alongside Sharp for server-generated OG images. |
-| **@vercel/og** | 0.11.x | Dynamic OG images | Edge function-based Open Graph image generation for social media previews. No Puppeteer overhead. |
+| **shadcn/ui** | @latest | Pre-built accessible UI components | Use for dialogs, forms, dropdowns, cards. Built on Radix UI primitives. Copy-paste components (not npm package). Handles accessibility out of the box. |
+| **@radix-ui/react-*** | @latest | Unstyled accessible primitives | Foundation for shadcn/ui. Use directly if customizing beyond shadcn patterns. |
+| **Zod** | @latest | Schema validation | Essential for form validation, API input validation, and type-safe database schemas. Works perfectly with React Hook Form. |
+| **React Hook Form** | @latest | Form state management | Industry standard for complex multi-step forms. Minimal re-renders, excellent DX. Use with @hookform/resolvers for Zod integration. |
+| **@hookform/resolvers** | @latest | Validation resolver bridge | Connects Zod schemas to React Hook Form. |
+| **Stripe** | @latest | Payment processing | One-time payments with Checkout Sessions. Strong TypeScript types and webhook handling. |
+| **@google/generative-ai** | @latest | Google Gemini SDK (Primary) | For narrative generation. Free tier includes generous request quota. Simple promise-based API. |
+| **groq-sdk** | @latest | Groq API (Fallback LLM) | Backup LLM when Gemini rate limits hit. Strategy: Gemini (primary) → Groq (backup) → queue for later. Both free tier. |
+| **Recharts** | @latest | Data visualization | Best React charting library for career path visualization, progress charts, risk breakdowns. Server-side rendering compatible. |
+| **date-fns** | @latest | Date manipulation | Lightweight, tree-shakeable, immutable. Perfect for 90-day timeline calculations. |
+| **sharp** | @latest | Image processing | Node.js native image processing for shareable card generation. Faster and more memory efficient than canvas-based solutions. Works on Vercel serverless functions. |
+| **@vercel/og** | @latest | Dynamic OG images | Edge function-based Open Graph image generation for social media previews. Native Vercel integration. |
+| **react-pdf** or **@react-pdf/renderer** | @latest | PDF generation (optional) | If offering downloadable PDF pivot plans. Evaluate if needed based on user demand. |
 
-**Confidence Level:** HIGH — All versions from npm registry. These are current production recommendations for 2025.
+**Note:** Verify all package versions during installation. Use `npm install <package>@latest` to get current stable releases.
 
 ### Development Tools
 
 | Tool | Purpose | Notes |
 |------|---------|-------|
-| **ESLint** | Code linting | Version 10.1.x. Use with next/core-web-vitals config + TypeScript plugin. Flat config format is now standard. |
-| **Prettier** | Code formatting | Version 3.8.x. Integrate with ESLint via eslint-config-prettier. Auto-format on save. |
-| **Turbopack** | Next.js bundler | Built into Next.js 16+. Replaces Webpack as default dev bundler. 700ms → 20ms HMR speeds. |
+| **ESLint** | Code linting | Use @latest with next/core-web-vitals config + TypeScript plugin. |
+| **Prettier** | Code formatting | Use @latest. Integrate with ESLint via eslint-config-prettier. Auto-format on save. |
+| **Turbopack** | Next.js bundler | Built into Next.js. Improved HMR speeds over Webpack. |
 | **Git** | Version control | Standard. Use conventional commits for clean history. |
+| **Vercel CLI** | Deployment & testing | Preview deployments, environment variables, logs. `npm install -g vercel` |
+
+## Deployment
+
+**Platform:** Vercel Free Tier (Hobby Plan)
+- Zero infrastructure cost
+- Native Next.js support with optimized builds
+- Automatic HTTPS, CDN, edge functions
+- Preview deployments for every git push
+- Environment variables via dashboard or CLI
+- Serverless functions (max 10s execution on free tier)
+- Edge functions for OG image generation (@vercel/og)
+
+**Free Tier Limits:**
+- 100 GB bandwidth/month
+- Unlimited deployments
+- 100 GB-hours serverless function execution
+- 500 edge function invocations/day (sufficient for initial validation)
 
 ## Installation
 
@@ -54,49 +72,51 @@
 # Create Next.js project with TypeScript
 npx create-next-app@latest career-pivot-coach --typescript --tailwind --app --use-npm
 
-# Core dependencies
-npm install mongodb@7.1.1 auth@1.5.6 @auth/mongodb-adapter@3.11.1
+# Supabase (database + auth)
+npm install @supabase/supabase-js@latest @supabase/ssr@latest
 
 # Payment processing
-npm install stripe@21.0.0
+npm install stripe@latest
 
-# Google Gemini
-npm install @google/generative-ai@0.24.1
+# LLM integrations (primary + fallback)
+npm install @google/generative-ai@latest groq-sdk@latest
 
 # Form handling & validation
-npm install react-hook-form@7.72.0 @hookform/resolvers@5.2.2 zod@4.3.6
+npm install react-hook-form@latest @hookform/resolvers@latest zod@latest
 
 # Charts & visualization
-npm install recharts@3.8.1
+npm install recharts@latest
 
 # Date utilities
-npm install date-fns@4.1.0
+npm install date-fns@latest
 
-# Password hashing
-npm install bcryptjs@3.0.3
-npm install -D @types/bcryptjs
+# Email (transactional)
+npm install resend@latest
 
-# Image generation (shareable cards)
-npm install sharp@0.34.5 html2canvas@1.4.1 @vercel/og@0.11.1
+# Image generation (shareable cards + OG images)
+npm install sharp@latest @vercel/og@latest
 
 # shadcn/ui (use CLI to add components as needed)
 npx shadcn@latest init
-npx shadcn@latest add button card dialog form input label select textarea
+npx shadcn@latest add button card dialog form input label select textarea toast
 
-# Dev dependencies (likely auto-installed, verify)
-npm install -D eslint@10.1.0 prettier@3.8.1 @types/node @types/react
+# Dev dependencies
+npm install -D @types/node@latest @types/react@latest eslint@latest prettier@latest
 ```
+
+**Note:** All packages use @latest to ensure current stable versions. Verify compatibility during installation.
 
 ## Alternatives Considered
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| **Next.js** | Remix, Astro | Remix if you prefer form-centric mutations. Astro if static-first (not applicable here). Next.js wins for full-stack React with great deployment options. |
-| **MongoDB** | PostgreSQL, Supabase | PostgreSQL if you need strict relational data (O*NET relationships could fit). But MongoDB's flexible schema better fits evolving assessment structures and nested pivot plan data. |
-| **Auth.js** | Clerk, Supabase Auth | Clerk for full-featured auth UI out of the box (but costs money). Supabase if using Supabase DB. Auth.js is free, flexible, works with MongoDB. |
-| **Tailwind CSS** | CSS Modules, styled-components | CSS Modules if you prefer scoped CSS. Styled-components if runtime CSS-in-JS is required. Tailwind is faster and more maintainable for utility-first approach. |
-| **Recharts** | Chart.js, D3.js | Chart.js for simpler charts (less React-friendly). D3 for highly custom visualizations (steep learning curve). Recharts hits the sweet spot for React apps. |
-| **Sharp** | Jimp, Canvas | Jimp is pure JS (slower). Canvas API (manual). Sharp is fastest with native bindings. |
+| **Next.js** | Remix, Astro | Remix if you prefer form-centric mutations. Astro if static-first (not applicable here). Next.js wins for full-stack React with great Vercel deployment. |
+| **Supabase** | MongoDB Atlas, PlanetScale, Railway Postgres | MongoDB for flexible schema (but assessments have stable structure). PlanetScale for MySQL with branching. Supabase wins for unified auth + database + free tier. |
+| **Tailwind CSS** | CSS Modules, styled-components | CSS Modules if you prefer scoped CSS. Styled-components if runtime CSS-in-JS is required. Tailwind is faster and more maintainable. |
+| **Recharts** | Chart.js, D3.js | Chart.js for simpler charts (less React-friendly). D3 for highly custom visualizations (steep learning curve). Recharts is the sweet spot. |
+| **Sharp** | Jimp, Canvas | Jimp is pure JS (slower). Canvas API (manual). Sharp is fastest with native bindings, works on Vercel. |
+| **Resend** | SendGrid, Postmark, AWS SES | SendGrid for more complex email (higher free tier but worse DX). Postmark for transactional focus. AWS SES cheapest at scale but complex setup. Resend has best DX for simple transactional email. |
+| **Gemini** | OpenAI, Anthropic | OpenAI GPT-4 for better quality (but paid only). Anthropic Claude for longer context. Gemini has best free tier for MVP validation. |
 
 ## What NOT to Use
 

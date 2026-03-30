@@ -1,7 +1,7 @@
 # Architecture Research
 
 **Domain:** Career Assessment & AI Risk Scoring Platform
-**Researched:** 2024-12-19
+**Updated:** 2026-03-30
 **Confidence:** HIGH
 
 ## Standard Architecture
@@ -45,10 +45,10 @@
 ├─────────────────────────────────────────────────────────────────┤
 │                  EXTERNAL SERVICES                               │
 ├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐                       │
-│  │  Stripe  │  │  Gemini  │  │  Email   │                       │
-│  │ Payment  │  │   LLM    │  │ Service  │                       │
-│  └──────────┘  └──────────┘  └──────────┘                       │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
+│  │  Stripe  │  │ Gemini + │  │  Resend  │  │ Supabase │        │
+│  │ Payment  │  │  Groq    │  │  Email   │  │Auth + DB │        │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘        │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -59,12 +59,12 @@
 | **Assessment Service** | Collects user input, validates data, coordinates scoring | Next.js API routes + server actions |
 | **Scoring Engine** | Deterministic AI risk calculation (4-layer algorithm) | Pure TypeScript functions, no DB queries |
 | **Job Matcher** | Fuzzy matching user input to O*NET occupation codes | String similarity algorithms (Levenshtein, trigrams) |
-| **Pivot Generator** | Creates 3 ranked career transition paths | Algorithm + Gemini API for narrative text |
+| **Pivot Generator** | Creates ALL 3 ranked career transition paths at once | Algorithm + LLM API (Gemini primary, Groq fallback) for narrative text |
 | **Payment Handler** | Stripe checkout, webhook processing, access control | Next.js API routes + Stripe SDK |
-| **Share Card Generator** | Creates downloadable images + OG meta tags | Canvas API (server-side) or external service |
-| **User Auth** | Email/password authentication, session management | NextAuth.js or similar |
-| **Dashboard Service** | Progress tracking, checklist state management | React components + MongoDB state |
-| **Admin Panel** | Analytics, user management, revenue dashboard | Protected Next.js pages + MongoDB queries |
+| **Share Card Generator** | Creates downloadable images + OG meta tags | Sharp + @vercel/og for social previews |
+| **User Auth** | Email/password authentication, session management | Supabase Auth (built-in) |
+| **Dashboard Service** | Progress tracking, checklist state management | React components + Supabase database state |
+| **Email Service** | Account verification, payment receipts, pivot plan delivery | Resend (free tier: 100 emails/day) |
 
 ## Recommended Project Structure
 
@@ -84,24 +84,23 @@ app/
 │   ├── page.tsx              # Overview/progress
 │   ├── pivot-plans/          # View purchased plans
 │   └── settings/             # User preferences
-├── (admin)/                  # Admin panel (admin role)
-│   ├── users/                # User management
-│   ├── analytics/            # Traffic, conversions
-│   └── revenue/              # Payment dashboard
+├── risk/                     # Programmatic SEO pages
+│   └── [job-slug]/           # Dynamic SEO pages for top 50 job titles
+│       └── page.tsx          # Pre-rendered job-specific landing pages
 ├── api/
 │   ├── assessment/
 │   │   ├── score/            # POST: calculate risk score
 │   │   └── deeper/           # POST: complete deeper assessment
 │   ├── pivot/
-│   │   ├── generate/         # POST: generate 3 pivot paths
+│   │   ├── generate/         # POST: generate ALL 3 pivot paths at once
 │   │   └── preview/          # GET: preview before paywall
 │   ├── payment/
 │   │   ├── checkout/         # POST: create Stripe session
 │   │   └── webhook/          # POST: Stripe webhook handler
 │   ├── share/
 │   │   └── card/             # GET: generate share card image
-│   └── auth/
-│       └── [...nextauth]/    # NextAuth endpoints
+│   └── og/                   # Edge function for OG images
+│       └── route.ts          # @vercel/og image generation
 ├── _actions/                 # Server actions
 │   ├── assessment.ts         # Assessment mutations
 │   ├── pivot.ts              # Pivot plan actions
@@ -109,8 +108,7 @@ app/
 └── _components/              # Shared components
     ├── ui/                   # shadcn/ui components
     ├── assessment/           # Quiz UI components
-    ├── dashboard/            # Dashboard widgets
-    └── admin/                # Admin UI components
+    └── dashboard/            # Dashboard widgets
 
 lib/
 ├── scoring/                  # Scoring engine (core logic)
@@ -131,22 +129,30 @@ lib/
 │   ├── types.ts              # O*NET TypeScript types
 │   └── research-scores.ts    # AI exposure research data
 ├── db/                       # Database layer
-│   ├── mongodb.ts            # MongoDB connection
-│   ├── models/               # Mongoose models
-│   │   ├── user.ts
-│   │   ├── assessment.ts
-│   │   ├── pivot-plan.ts
-│   │   └── payment.ts
+│   ├── supabase.ts           # Supabase client initialization
+│   ├── schema.sql            # Database schema (tables, RLS policies)
 │   └── queries/              # Common queries
+│       ├── users.ts
+│       ├── assessments.ts
+│       ├── pivot-plans.ts
+│       └── payments.ts
 ├── auth/                     # Authentication
-│   ├── config.ts             # NextAuth configuration
-│   └── middleware.ts         # Auth checks
+│   ├── config.ts             # Supabase Auth configuration
+│   └── middleware.ts         # Auth checks, session management
+├── llm/                      # LLM integrations
+│   ├── gemini.ts             # Gemini client (primary)
+│   ├── groq.ts               # Groq client (fallback)
+│   ├── queue.ts              # Queue for failed LLM requests
+│   └── prompts.ts            # Prompt templates
 ├── payment/                  # Payment processing
 │   ├── stripe.ts             # Stripe client
 │   └── webhook-handlers.ts   # Webhook logic
+├── email/                    # Email service
+│   ├── resend.ts             # Resend client
+│   └── templates.ts          # Email templates (verification, receipts)
 └── utils/                    # Utilities
-    ├── share-card.ts         # Share card generation
-    ├── email.ts              # Email sending
+    ├── share-card.ts         # Share card generation (Sharp)
+    ├── og-image.ts           # OG image generation (@vercel/og)
     └── validation.ts         # Input validation (Zod schemas)
 
 public/
@@ -703,7 +709,7 @@ Based on component dependencies and value delivery:
 
 ### Phase 1: Foundation (Core Infrastructure)
 **Goal:** Minimal working app with basic scoring
-1. Project setup (Next.js, shadcn/ui, MongoDB)
+1. Project setup (Next.js, shadcn/ui, Supabase)
 2. O*NET data processing scripts (download, parse, save JSON)
 3. Scoring engine (4-layer algorithm as pure functions)
 4. Job matcher (fuzzy matching to O*NET codes)
@@ -713,29 +719,31 @@ Based on component dependencies and value delivery:
 
 ### Phase 2: Free Assessment Flow
 **Goal:** Viral hook with shareability
-1. Database models (User, Assessment)
+1. Database schema (Supabase tables: users, assessments, pivot_plans, payments)
 2. Assessment API (save inputs + scores)
 3. Results page (score visualization)
-4. Share card generation (downloadable image + OG meta tags)
+4. Share card generation (downloadable image via Sharp + OG meta tags via @vercel/og)
 5. Basic analytics (page views, assessments completed)
 
 **Milestone:** Complete free flow, shareable cards working
 
 ### Phase 3: Authentication & Deeper Assessment
 **Goal:** Capture user accounts for conversion
-1. NextAuth.js setup (email/password)
+1. Supabase Auth setup (email/password)
 2. User registration/login flow
 3. Deeper assessment form (detailed questions)
 4. Dashboard layout (navigation, user menu)
+5. Email verification via Resend
 
 **Milestone:** Users can create accounts and complete detailed assessments
 
 ### Phase 4: Pivot Generation
-**Goal:** Generate personalized career paths
+**Goal:** Generate ALL 3 personalized career paths at once
 1. Pivot generation algorithm (skill gaps, path ranking)
-2. Gemini API integration (narrative generation)
-3. Preview endpoint (partial data)
-4. Preview UI (show titles, blur details)
+2. LLM integration (Gemini primary, Groq fallback, queue for later)
+3. Generate all 3 paths simultaneously (not sequentially)
+4. Preview endpoint (partial data)
+5. Preview UI (show titles, blur details)
 
 **Milestone:** Users see 3 personalized pivot path previews
 
@@ -743,9 +751,9 @@ Based on component dependencies and value delivery:
 **Goal:** Monetization flow
 1. Stripe integration (checkout sessions)
 2. Payment webhook handler
-3. Unlock logic (status update in DB)
-4. Full pivot plan display
-5. Email confirmations
+3. Unlock logic (status update in Supabase)
+4. Full pivot plan display (all 3 paths unlocked)
+5. Email confirmations via Resend (payment receipt, plan delivery)
 
 **Milestone:** Complete paid conversion flow works end-to-end
 
@@ -758,25 +766,20 @@ Based on component dependencies and value delivery:
 
 **Milestone:** Users can track their pivot plan progress
 
-### Phase 7: Admin & Analytics
-**Goal:** Business operations support
-1. Admin authentication/authorization
-2. User management UI
-3. Analytics dashboard (traffic, conversions, revenue)
-4. Payment records view
-
-**Milestone:** Admin can monitor business metrics and support users
-
-### Phase 8: Polish & Optimization
-**Goal:** Production readiness
+### Phase 7: Polish & Production Readiness
+**Goal:** Production launch preparation
 1. Error handling and user feedback
 2. Loading states and skeletons
 3. SEO optimization (metadata, sitemaps)
-4. Performance optimization (caching, lazy loading)
-5. Help/FAQ content
-6. Terms of Service, Privacy Policy
+4. Programmatic SEO pages for top 50 job titles (/risk/[job-slug])
+5. Performance optimization (caching, lazy loading)
+6. Help/FAQ content
+7. Terms of Service, Privacy Policy
+8. Rate limiting and security hardening
 
 **Milestone:** Production-ready application
+
+**NOTE:** Admin panel deferred from this milestone. Use Supabase Dashboard + Stripe Dashboard directly for MVP monitoring.
 
 ## Sources
 
