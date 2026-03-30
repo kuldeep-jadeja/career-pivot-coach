@@ -160,87 +160,87 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Which phases cover which requirements. Will be populated during roadmap creation.
+Which phases cover which requirements. Populated during roadmap creation (2026-03-30).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | TBD | Pending |
-| INFRA-02 | TBD | Pending |
-| INFRA-03 | TBD | Pending |
-| INFRA-04 | TBD | Pending |
-| INFRA-05 | TBD | Pending |
-| INFRA-06 | TBD | Pending |
-| INFRA-07 | TBD | Pending |
-| INFRA-08 | TBD | Pending |
-| INFRA-09 | TBD | Pending |
-| INFRA-10 | TBD | Pending |
-| INFRA-11 | TBD | Pending |
-| INFRA-12 | TBD | Pending |
-| ASSESS-01 | TBD | Pending |
-| ASSESS-02 | TBD | Pending |
-| ASSESS-03 | TBD | Pending |
-| ASSESS-04 | TBD | Pending |
-| ASSESS-05 | TBD | Pending |
-| ASSESS-06 | TBD | Pending |
-| ASSESS-07 | TBD | Pending |
-| ASSESS-08 | TBD | Pending |
-| ASSESS-09 | TBD | Pending |
-| ASSESS-10 | TBD | Pending |
-| VIRAL-01 | TBD | Pending |
-| VIRAL-02 | TBD | Pending |
-| VIRAL-03 | TBD | Pending |
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| AUTH-04 | TBD | Pending |
-| AUTH-05 | TBD | Pending |
-| AUTH-06 | TBD | Pending |
-| AUTH-07 | TBD | Pending |
-| AUTH-08 | TBD | Pending |
-| AUTH-09 | TBD | Pending |
-| DEEP-01 | TBD | Pending |
-| DEEP-02 | TBD | Pending |
-| DEEP-03 | TBD | Pending |
-| DEEP-04 | TBD | Pending |
-| DEEP-05 | TBD | Pending |
-| DEEP-06 | TBD | Pending |
-| DEEP-07 | TBD | Pending |
-| PIVOT-01 | TBD | Pending |
-| PIVOT-02 | TBD | Pending |
-| PIVOT-03 | TBD | Pending |
-| PIVOT-04 | TBD | Pending |
-| PIVOT-05 | TBD | Pending |
-| PIVOT-06 | TBD | Pending |
-| PIVOT-07 | TBD | Pending |
-| PIVOT-08 | TBD | Pending |
-| PIVOT-09 | TBD | Pending |
-| PIVOT-10 | TBD | Pending |
-| PIVOT-11 | TBD | Pending |
-| PIVOT-12 | TBD | Pending |
-| PAY-01 | TBD | Pending |
-| PAY-02 | TBD | Pending |
-| PAY-03 | TBD | Pending |
-| PAY-04 | TBD | Pending |
-| PAY-05 | TBD | Pending |
-| PAY-06 | TBD | Pending |
-| PAY-07 | TBD | Pending |
-| PAY-08 | TBD | Pending |
-| TRACK-01 | TBD | Pending |
-| TRACK-02 | TBD | Pending |
-| TRACK-03 | TBD | Pending |
-| TRACK-04 | TBD | Pending |
-| TRACK-05 | TBD | Pending |
-| TRACK-06 | TBD | Pending |
-| LEGAL-01 | TBD | Pending |
-| LEGAL-02 | TBD | Pending |
-| LEGAL-03 | TBD | Pending |
-| LEGAL-04 | TBD | Pending |
-| LEGAL-05 | TBD | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Pending |
+| INFRA-05 | Phase 1 | Pending |
+| INFRA-06 | Phase 1 | Pending |
+| INFRA-07 | Phase 1 | Pending |
+| INFRA-08 | Phase 1 | Pending |
+| INFRA-09 | Phase 5 | Pending |
+| INFRA-10 | Phase 5 | Pending |
+| INFRA-11 | Phase 1 | Pending |
+| INFRA-12 | Phase 1 | Pending |
+| ASSESS-01 | Phase 2 | Pending |
+| ASSESS-02 | Phase 2 | Pending |
+| ASSESS-03 | Phase 2 | Pending |
+| ASSESS-04 | Phase 2 | Pending |
+| ASSESS-05 | Phase 2 | Pending |
+| ASSESS-06 | Phase 2 | Pending |
+| ASSESS-07 | Phase 2 | Pending |
+| ASSESS-08 | Phase 2 | Pending |
+| ASSESS-09 | Phase 2 | Pending |
+| ASSESS-10 | Phase 2 | Pending |
+| VIRAL-01 | Phase 2 | Pending |
+| VIRAL-02 | Phase 2 | Pending |
+| VIRAL-03 | Phase 7 | Pending |
+| AUTH-01 | Phase 3 | Pending |
+| AUTH-02 | Phase 3 | Pending |
+| AUTH-03 | Phase 3 | Pending |
+| AUTH-04 | Phase 3 | Pending |
+| AUTH-05 | Phase 3 | Pending |
+| AUTH-06 | Phase 3 | Pending |
+| AUTH-07 | Phase 3 | Pending |
+| AUTH-08 | Phase 3 | Pending |
+| AUTH-09 | Phase 3 | Pending |
+| DEEP-01 | Phase 3 | Pending |
+| DEEP-02 | Phase 3 | Pending |
+| DEEP-03 | Phase 3 | Pending |
+| DEEP-04 | Phase 3 | Pending |
+| DEEP-05 | Phase 3 | Pending |
+| DEEP-06 | Phase 3 | Pending |
+| DEEP-07 | Phase 3 | Pending |
+| PIVOT-01 | Phase 4 | Pending |
+| PIVOT-02 | Phase 4 | Pending |
+| PIVOT-03 | Phase 4 | Pending |
+| PIVOT-04 | Phase 4 | Pending |
+| PIVOT-05 | Phase 4 | Pending |
+| PIVOT-06 | Phase 4 | Pending |
+| PIVOT-07 | Phase 4 | Pending |
+| PIVOT-08 | Phase 4 | Pending |
+| PIVOT-09 | Phase 4 | Pending |
+| PIVOT-10 | Phase 4 | Pending |
+| PIVOT-11 | Phase 4 | Pending |
+| PIVOT-12 | Phase 4 | Pending |
+| PAY-01 | Phase 4 | Pending |
+| PAY-02 | Phase 5 | Pending |
+| PAY-03 | Phase 5 | Pending |
+| PAY-04 | Phase 5 | Pending |
+| PAY-05 | Phase 5 | Pending |
+| PAY-06 | Phase 5 | Pending |
+| PAY-07 | Phase 5 | Pending |
+| PAY-08 | Phase 5 | Pending |
+| TRACK-01 | Phase 6 | Pending |
+| TRACK-02 | Phase 6 | Pending |
+| TRACK-03 | Phase 6 | Pending |
+| TRACK-04 | Phase 6 | Pending |
+| TRACK-05 | Phase 6 | Pending |
+| TRACK-06 | Phase 6 | Pending |
+| LEGAL-01 | Phase 2 | Pending |
+| LEGAL-02 | Phase 3 | Pending |
+| LEGAL-03 | Phase 3 | Pending |
+| LEGAL-04 | Phase 2 | Pending |
+| LEGAL-05 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 81 total
-- Mapped to phases: 0 (will be populated during roadmap creation)
-- Unmapped: 81 ⚠️
+- Mapped to phases: 81 ✓
+- Unmapped: 0 ✓
 
 ---
 
