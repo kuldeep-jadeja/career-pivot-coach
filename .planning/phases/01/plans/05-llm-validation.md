@@ -1,0 +1,869 @@
+# Plan 05: Dual-LLM Client & Validation Suite
+
+**Requirements:** INFRA-12 (plus validation from success criteria)  
+**Estimated Time:** 3-4 hours  
+**Dependencies:** Plan 04 (scoring engine must be complete for validation)
+
+## Goal
+
+Implement the dual-LLM client with Gemini as primary and Groq as fallback, create the email queue for failed requests, and establish the three-tier validation system (unit tests, golden dataset, research correlation) to prove scoring accuracy.
+
+## Context
+
+**From PHASE-1-CONTEXT.md:**
+- Dual-LLM fallback chain: Gemini (primary) → Groq (backup) → queue for later + email notification
+- Three-tier validation: Unit tests (Vitest, 20-30 occupations) + golden dataset (50+ occupations) + research correlation (> 0.7)
+- LLM usage: ONLY for personalized narrative text in pivot plans, NOT for risk scoring
+
+**From STACK.md:**
+- `@google/generative-ai@latest` for Gemini
+- `groq-sdk@latest` for Groq
+- Both have free tiers sufficient for MVP
+
+**From PHASE-1-CONTEXT.md Success Criteria:**
+- Three-tier validation complete: unit tests pass, golden dataset validates, research correlation > 0.7
+- Methodology page drafted with layer explanations, formula, limitations, bibliography
+
+## Tasks
+
+### Task 1: Install and configure Gemini client
+
+- **Action:** 
+  1. Get Gemini API key from Google AI Studio (https://aistudio.google.com/)
+  2. Install SDK: `npm install @google/generative-ai@latest`
+  3. Add API key to `.env.local`
+  4. Create typed Gemini client wrapper
+- **Files:**
+  - `.env.local` (add GEMINI_API_KEY)
+  - `lib/llm/gemini.ts`
+  - `lib/llm/types.ts`
+- **Implementation:**
+  ```typescript
+  // lib/llm/types.ts
+  export interface LLMResponse {
+    content: string;
+    provider: 'gemini' | 'groq';
+    model: string;
+    tokensUsed?: number;
+    latencyMs: number;
+  }
+  
+  export interface LLMError {
+    provider: 'gemini' | 'groq';
+    error: string;
+    code?: string;
+    retryable: boolean;
+  }
+  
+  export interface NarrativeRequest {
+    pivotPath: {
+      currentRole: string;
+      targetRole: string;
+      skillGaps: string[];
+      transferableSkills: string[];
+      fitScore: number;
+    };
+    userContext: {
+      yearsExperience: number;
+      timeAvailable: number; // hours per week
+      constraints?: string[];
+    };
+  }
+  
+  // lib/llm/gemini.ts
+  import { GoogleGenerativeAI } from '@google/generative-ai';
+  import type { LLMResponse, LLMError, NarrativeRequest } from './types';
+  
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+  
+  export async function generateNarrativeGemini(
+    request: NarrativeRequest
+  ): Promise<LLMResponse> {
+    const startTime = Date.now();
+    
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-1.5-flash' // Fast, free tier friendly
+    });
+    
+    const prompt = buildNarrativePrompt(request);
+    
+    try {
+      const result = await model.generateContent(prompt);
+      const response = result.response;
+      const text = response.text();
+      
+      return {
+        content: text,
+        provider: 'gemini',
+        model: 'gemini-1.5-flash',
+        latencyMs: Date.now() - startTime,
+      };
+    } catch (error: any) {
+      throw {
+        provider: 'gemini',
+        error: error.message,
+        code: error.code,
+        retryable: isRetryableError(error),
+      } as LLMError;
+    }
+  }
+  
+  function buildNarrativePrompt(request: NarrativeRequest): string {
+    return `
+  You are a career transition coach writing a personalized pivot plan narrative.
+
+  Current Role: ${request.pivotPath.currentRole}
+  Target Role: ${request.pivotPath.targetRole}
+  Fit Score: ${request.pivotPath.fitScore}%
+
+  Transferable Skills:
+  ${request.pivotPath.transferableSkills.map(s => `- ${s}`).join('\n')}
+
+  Skill Gaps to Address:
+  ${request.pivotPath.skillGaps.map(s => `- ${s}`).join('\n')}
+
+  User Context:
+  - Years of experience: ${request.userContext.yearsExperience}
+  - Hours available per week: ${request.userContext.timeAvailable}
+  ${request.userContext.constraints ? `- Constraints: ${request.userContext.constraints.join(', ')}` : ''}
+
+  Write a motivating, personalized 2-3 paragraph narrative explaining:
+  1. Why this pivot makes sense given their background
+  2. How their transferable skills give them an advantage
+  3. A realistic but encouraging timeline based on their availability
+
+  Be specific, reference their actual skills and constraints. Avoid generic advice.
+  `;
+  }
+  
+  function isRetryableError(error: any): boolean {
+    // Rate limits, temporary failures
+    const retryableCodes = ['RATE_LIMIT', 'RESOURCE_EXHAUSTED', 'UNAVAILABLE'];
+    return retryableCodes.includes(error.code);
+  }
+  ```
+- **Verification:**
+  - API key is set in `.env.local`
+  - Can make test request to Gemini
+  - Response includes generated text
+
+### Task 2: Install and configure Groq client
+
+- **Action:** 
+  1. Get Groq API key from console.groq.com
+  2. Install SDK: `npm install groq-sdk@latest`
+  3. Add API key to `.env.local`
+  4. Create typed Groq client wrapper
+- **Files:**
+  - `.env.local` (add GROQ_API_KEY)
+  - `lib/llm/groq.ts`
+- **Implementation:**
+  ```typescript
+  // lib/llm/groq.ts
+  import Groq from 'groq-sdk';
+  import type { LLMResponse, LLMError, NarrativeRequest } from './types';
+  
+  const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY,
+  });
+  
+  export async function generateNarrativeGroq(
+    request: NarrativeRequest
+  ): Promise<LLMResponse> {
+    const startTime = Date.now();
+    
+    const prompt = buildNarrativePrompt(request);
+    
+    try {
+      const completion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a career transition coach writing personalized pivot plan narratives. Be specific, encouraging, and realistic.',
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        model: 'llama-3.3-70b-versatile', // Fast, free tier
+        temperature: 0.7,
+        max_tokens: 1024,
+      });
+      
+      const content = completion.choices[0]?.message?.content || '';
+      
+      return {
+        content,
+        provider: 'groq',
+        model: 'llama-3.3-70b-versatile',
+        tokensUsed: completion.usage?.total_tokens,
+        latencyMs: Date.now() - startTime,
+      };
+    } catch (error: any) {
+      throw {
+        provider: 'groq',
+        error: error.message,
+        code: error.code,
+        retryable: isRetryableError(error),
+      } as LLMError;
+    }
+  }
+  
+  function buildNarrativePrompt(request: NarrativeRequest): string {
+    // Same prompt as Gemini for consistency
+    return `
+  Current Role: ${request.pivotPath.currentRole}
+  Target Role: ${request.pivotPath.targetRole}
+  Fit Score: ${request.pivotPath.fitScore}%
+
+  Transferable Skills:
+  ${request.pivotPath.transferableSkills.map(s => `- ${s}`).join('\n')}
+
+  Skill Gaps to Address:
+  ${request.pivotPath.skillGaps.map(s => `- ${s}`).join('\n')}
+
+  User Context:
+  - Years of experience: ${request.userContext.yearsExperience}
+  - Hours available per week: ${request.userContext.timeAvailable}
+  ${request.userContext.constraints ? `- Constraints: ${request.userContext.constraints.join(', ')}` : ''}
+
+  Write a motivating, personalized 2-3 paragraph narrative explaining:
+  1. Why this pivot makes sense given their background
+  2. How their transferable skills give them an advantage
+  3. A realistic but encouraging timeline based on their availability
+
+  Be specific, reference their actual skills and constraints. Avoid generic advice.
+  `;
+  }
+  
+  function isRetryableError(error: any): boolean {
+    const retryableCodes = ['rate_limit_exceeded', 'service_unavailable'];
+    return retryableCodes.some(code => 
+      error.message?.toLowerCase().includes(code) || 
+      error.code === code
+    );
+  }
+  ```
+- **Verification:**
+  - API key is set in `.env.local`
+  - Can make test request to Groq
+  - Response format matches Gemini
+
+### Task 3: Create unified LLM client with fallback chain
+
+- **Action:** Create a unified client that tries Gemini first, falls back to Groq, then queues for later.
+- **Files:**
+  - `lib/llm/client.ts`
+  - `lib/llm/queue.ts`
+- **Implementation:**
+  ```typescript
+  // lib/llm/client.ts
+  import { generateNarrativeGemini } from './gemini';
+  import { generateNarrativeGroq } from './groq';
+  import { queueForRetry, QueuedRequest } from './queue';
+  import type { LLMResponse, LLMError, NarrativeRequest } from './types';
+  
+  export interface GenerateNarrativeResult {
+    success: boolean;
+    response?: LLMResponse;
+    queued?: boolean;
+    queueId?: string;
+    errors?: LLMError[];
+  }
+  
+  /**
+   * Generate narrative with fallback chain:
+   * 1. Try Gemini (primary)
+   * 2. If fails, try Groq (fallback)
+   * 3. If both fail, queue for retry and return queued status
+   */
+  export async function generateNarrative(
+    request: NarrativeRequest,
+    userId?: string
+  ): Promise<GenerateNarrativeResult> {
+    const errors: LLMError[] = [];
+    
+    // Try Gemini first
+    try {
+      const response = await generateNarrativeGemini(request);
+      return { success: true, response };
+    } catch (error) {
+      errors.push(error as LLMError);
+      console.warn('Gemini failed, trying Groq:', (error as LLMError).error);
+    }
+    
+    // Fallback to Groq
+    try {
+      const response = await generateNarrativeGroq(request);
+      return { success: true, response };
+    } catch (error) {
+      errors.push(error as LLMError);
+      console.warn('Groq also failed, queueing for retry:', (error as LLMError).error);
+    }
+    
+    // Both failed - queue for later
+    const queueId = await queueForRetry({
+      request,
+      userId,
+      errors,
+      attemptCount: 2,
+    });
+    
+    return {
+      success: false,
+      queued: true,
+      queueId,
+      errors,
+    };
+  }
+  
+  // lib/llm/queue.ts
+  import type { NarrativeRequest, LLMError } from './types';
+  
+  export interface QueuedRequest {
+    id: string;
+    request: NarrativeRequest;
+    userId?: string;
+    errors: LLMError[];
+    attemptCount: number;
+    createdAt: Date;
+    nextRetryAt: Date;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+  }
+  
+  // In-memory queue for MVP (upgrade to database in production)
+  const queue: Map<string, QueuedRequest> = new Map();
+  
+  export async function queueForRetry(params: {
+    request: NarrativeRequest;
+    userId?: string;
+    errors: LLMError[];
+    attemptCount: number;
+  }): Promise<string> {
+    const id = `llm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const queuedRequest: QueuedRequest = {
+      id,
+      request: params.request,
+      userId: params.userId,
+      errors: params.errors,
+      attemptCount: params.attemptCount,
+      createdAt: new Date(),
+      nextRetryAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+      status: 'pending',
+    };
+    
+    queue.set(id, queuedRequest);
+    
+    // In production: save to database, trigger background job
+    console.log(`Queued LLM request ${id} for retry at ${queuedRequest.nextRetryAt}`);
+    
+    return id;
+  }
+  
+  export function getQueuedRequest(id: string): QueuedRequest | undefined {
+    return queue.get(id);
+  }
+  
+  export function getPendingRequests(): QueuedRequest[] {
+    return Array.from(queue.values()).filter(r => r.status === 'pending');
+  }
+  
+  export async function processQueue(): Promise<void> {
+    // Background job to process queued requests
+    // Implementation depends on deployment (Vercel cron, external worker, etc.)
+  }
+  ```
+- **Verification:**
+  - Primary request uses Gemini
+  - Simulated Gemini failure triggers Groq fallback
+  - Both failures result in queued request
+  - Queue returns valid queue ID
+
+### Task 4: Create email notification for queued requests
+
+- **Action:** Implement email notification when LLM requests are queued.
+- **Files:**
+  - `lib/llm/notifications.ts`
+  - `lib/email/templates.ts` (add LLM queue template)
+- **Implementation:**
+  ```typescript
+  // lib/llm/notifications.ts
+  import { sendEmail } from '@/lib/email/resend';
+  import { getQueuedRequest } from './queue';
+  
+  export async function notifyUserOfQueuedRequest(
+    queueId: string,
+    userEmail: string
+  ): Promise<void> {
+    const request = getQueuedRequest(queueId);
+    if (!request) return;
+    
+    await sendEmail({
+      to: userEmail,
+      subject: 'Your career pivot plan is being prepared',
+      html: `
+        <h1>We're working on your personalized plan</h1>
+        <p>Our AI systems are currently experiencing high demand. Your career pivot plan is in our queue and will be ready within the next hour.</p>
+        <p>We'll send you another email as soon as your personalized plan is available.</p>
+        <p>Thank you for your patience!</p>
+        <p>— The Unautomatable Team</p>
+      `,
+    });
+  }
+  
+  export async function notifyUserPlanReady(
+    userEmail: string,
+    dashboardUrl: string
+  ): Promise<void> {
+    await sendEmail({
+      to: userEmail,
+      subject: '🎉 Your career pivot plan is ready!',
+      html: `
+        <h1>Your personalized career pivot plan is ready!</h1>
+        <p>Great news! We've finished generating your 3 personalized career pivot paths.</p>
+        <p><a href="${dashboardUrl}" style="background: #2563eb; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">View Your Plans</a></p>
+        <p>Thank you for using Unautomatable!</p>
+        <p>— The Unautomatable Team</p>
+      `,
+    });
+  }
+  ```
+- **Verification:**
+  - Queued request triggers email notification
+  - Email contains appropriate messaging
+  - Plan ready notification links to dashboard
+
+### Task 5: Create golden dataset for validation
+
+- **Action:** Build a comprehensive golden dataset of 50+ occupations with expected score ranges and rationale.
+- **Files:**
+  - `tests/golden-dataset.json`
+  - `tests/validate-golden-dataset.ts`
+- **Implementation:**
+  ```json
+  // tests/golden-dataset.json
+  // NOTE: This is a TEMPLATE showing structure. The complete dataset MUST contain 50+ occupations.
+  // Executor MUST expand this to meet minimum requirements before Task 5 is complete.
+  {
+    "version": "1.0.0",
+    "description": "Golden dataset for scoring validation - MINIMUM 50 occupations required",
+    "created": "2024-03-30",
+    "requirements": {
+      "minimumTotal": 50,
+      "minimumPerCategory": 8,
+      "minimumPerRiskBand": 10,
+      "categories": ["tech", "healthcare", "trades", "creative", "management", "service"],
+      "riskBands": ["low_0_20", "moderate_21_40", "elevated_41_60", "high_61_80", "very_high_81_100"]
+    },
+    "occupations": [
+      // === TECH CATEGORY (minimum 8) ===
+      {
+        "socCode": "15-1252.00",
+        "title": "Software Developers",
+        "expectedRange": { "min": 60, "max": 80 },
+        "rationale": "High AI exposure (coding assistance, code generation), but creative/architectural work remains human",
+        "category": "tech"
+      },
+      // TODO: Add 7+ more tech occupations (data scientists, sysadmins, network engineers, etc.)
+      
+      // === HEALTHCARE CATEGORY (minimum 8) ===
+      {
+        "socCode": "29-1141.00",
+        "title": "Registered Nurses",
+        "expectedRange": { "min": 25, "max": 45 },
+        "rationale": "Physical care, emotional support, complex judgment - core tasks resist automation",
+        "category": "healthcare"
+      },
+      // TODO: Add 7+ more healthcare occupations (physicians, medical assistants, lab techs, etc.)
+      
+      // === TRADES CATEGORY (minimum 8) ===
+      {
+        "socCode": "47-2152.00",
+        "title": "Plumbers, Pipefitters, and Steamfitters",
+        "expectedRange": { "min": 10, "max": 25 },
+        "rationale": "Physical, varied environments, problem-solving in unpredictable situations",
+        "category": "trades"
+      },
+      // TODO: Add 7+ more trades occupations (electricians, HVAC techs, carpenters, etc.)
+      
+      // === CREATIVE CATEGORY (minimum 8) ===
+      {
+        "socCode": "27-1024.00",
+        "title": "Graphic Designers",
+        "expectedRange": { "min": 55, "max": 75 },
+        "rationale": "AI tools augment but creative direction and client relationship remain human",
+        "category": "creative"
+      },
+      // TODO: Add 7+ more creative occupations (writers, animators, photographers, etc.)
+      
+      // === MANAGEMENT CATEGORY (minimum 8) ===
+      {
+        "socCode": "11-1011.00",
+        "title": "Chief Executives",
+        "expectedRange": { "min": 30, "max": 50 },
+        "rationale": "Strategic decision-making, stakeholder relationships, leadership - human-centric",
+        "category": "management"
+      },
+      // TODO: Add 7+ more management occupations (project managers, operations managers, etc.)
+      
+      // === SERVICE CATEGORY (minimum 8) ===
+      {
+        "socCode": "41-2031.00",
+        "title": "Retail Salespersons",
+        "expectedRange": { "min": 50, "max": 70 },
+        "rationale": "Self-checkout, recommendations AI-driven, but human touch still valued",
+        "category": "service"
+      },
+      // TODO: Add 7+ more service occupations (customer service reps, food service, hospitality, etc.)
+      
+      // Additional occupations to include across risk spectrum:
+      {
+        "socCode": "43-9061.00",
+        "title": "Office Clerks, General",
+        "expectedRange": { "min": 75, "max": 95 },
+        "rationale": "Very high automation potential - data entry, filing, scheduling are core AI strengths",
+        "category": "administrative"
+      },
+      {
+        "socCode": "25-2021.00",
+        "title": "Elementary School Teachers",
+        "expectedRange": { "min": 25, "max": 40 },
+        "rationale": "Human connection, child development, classroom management - inherently human tasks",
+        "category": "education"
+      },
+      {
+        "socCode": "13-2011.00",
+        "title": "Accountants and Auditors",
+        "expectedRange": { "min": 60, "max": 80 },
+        "rationale": "Routine bookkeeping highly automatable, but judgment and advisory less so",
+        "category": "finance"
+      },
+      {
+        "socCode": "53-3032.00",
+        "title": "Heavy and Tractor-Trailer Truck Drivers",
+        "expectedRange": { "min": 55, "max": 75 },
+        "rationale": "Autonomous vehicles advancing but regulatory, safety, last-mile challenges remain",
+        "category": "transportation"
+      }
+    ]
+  }
+  ```
+  ```typescript
+  // tests/validate-golden-dataset.ts
+  import { describe, it, expect } from 'vitest';
+  import { calculateRiskScoreSync } from '@/lib/scoring/risk-calculator';
+  import goldenDataset from './golden-dataset.json';
+  
+  // Validate dataset completeness first
+  describe('Golden Dataset Completeness', () => {
+    it('contains minimum 50 occupations', () => {
+      expect(goldenDataset.occupations.length).toBeGreaterThanOrEqual(50);
+    });
+    
+    it('has minimum 8 occupations per core category', () => {
+      const categories = ['tech', 'healthcare', 'trades', 'creative', 'management', 'service'];
+      for (const cat of categories) {
+        const count = goldenDataset.occupations.filter(o => o.category === cat).length;
+        expect(count, `Category "${cat}" needs 8+ occupations, has ${count}`).toBeGreaterThanOrEqual(8);
+      }
+    });
+    
+    it('has minimum 10 occupations per risk band', () => {
+      const bands = [
+        { name: 'Low (0-20%)', min: 0, max: 20 },
+        { name: 'Moderate (21-40%)', min: 21, max: 40 },
+        { name: 'Elevated (41-60%)', min: 41, max: 60 },
+        { name: 'High (61-80%)', min: 61, max: 80 },
+        { name: 'Very High (81-100%)', min: 81, max: 100 },
+      ];
+      
+      for (const band of bands) {
+        const count = goldenDataset.occupations.filter(o => 
+          o.expectedRange.min >= band.min - 10 && o.expectedRange.max <= band.max + 10
+        ).length;
+        expect(count, `Risk band "${band.name}" needs 10+ occupations, has ${count}`).toBeGreaterThanOrEqual(10);
+      }
+    });
+    
+    it('each occupation has expected score range and written rationale', () => {
+      for (const occ of goldenDataset.occupations) {
+        expect(occ.expectedRange, `${occ.title} missing expectedRange`).toBeDefined();
+        expect(occ.expectedRange.min, `${occ.title} missing min`).toBeDefined();
+        expect(occ.expectedRange.max, `${occ.title} missing max`).toBeDefined();
+        expect(occ.rationale, `${occ.title} missing rationale`).toBeDefined();
+        expect(occ.rationale.length, `${occ.title} rationale too short`).toBeGreaterThan(20);
+      }
+    });
+  });
+  
+  describe('Golden Dataset Validation', () => {
+    for (const occupation of goldenDataset.occupations) {
+      it(`${occupation.title} (${occupation.socCode}) scores within expected range`, () => {
+        const score = calculateRiskScoreSync({
+          occupationCode: occupation.socCode,
+          industryCode: occupation.category,
+          yearsExperience: 5, // Standard mid-career
+        });
+        
+        expect(score.overall).toBeGreaterThanOrEqual(occupation.expectedRange.min);
+        expect(score.overall).toBeLessThanOrEqual(occupation.expectedRange.max);
+      });
+    }
+  });
+  ```
+- **Verification:**
+  - **Golden dataset contains minimum 50 occupations**
+  - **Category distribution: 8+ occupations per category:**
+    - Tech (software, data, engineering)
+    - Healthcare (clinical, admin, support)
+    - Trades (construction, manufacturing, maintenance)
+    - Creative (design, arts, media)
+    - Management (operations, project, executive)
+    - Service (retail, hospitality, customer support)
+  - **Risk spectrum coverage: 10+ occupations in each band:**
+    - Low Risk (0-20%)
+    - Moderate Risk (21-40%)
+    - Elevated Risk (41-60%)
+    - High Risk (61-80%)
+    - Very High Risk (81-100%)
+  - **Each occupation has expected score range + written rationale**
+  - Validation tests pass for all occupations
+
+### Task 6: Implement research correlation check
+
+- **Action:** Compare our scores against published AI exposure rankings (Eloundou, Felten) and calculate correlation coefficient.
+- **Files:**
+  - `tests/research-correlation.ts`
+  - `lib/data/research-rankings.ts`
+- **Implementation:**
+  ```typescript
+  // lib/data/research-rankings.ts
+  // Published AI exposure rankings from research
+  // Source: Eloundou et al. "GPTs are GPTs" (2023)
+  // Normalized to 0-100 scale for comparison
+  
+  export const ELOUNDOU_RANKINGS: Record<string, number> = {
+    '15-1252.00': 79,  // Software Developers
+    '43-9061.00': 84,  // Office Clerks
+    '29-1141.00': 38,  // Registered Nurses
+    '25-2021.00': 34,  // Elementary Teachers
+    '47-2152.00': 12,  // Plumbers
+    '27-1024.00': 68,  // Graphic Designers
+    '13-2011.00': 74,  // Accountants
+    '41-2031.00': 56,  // Retail Salespersons
+    '53-3032.00': 42,  // Truck Drivers
+    '11-1011.00': 45,  // Chief Executives
+    // Add more as available from research
+  };
+  
+  // tests/research-correlation.ts
+  import { describe, it, expect } from 'vitest';
+  import { calculateRiskScoreSync } from '@/lib/scoring/risk-calculator';
+  import { ELOUNDOU_RANKINGS } from '@/lib/data/research-rankings';
+  
+  /**
+   * Calculate Pearson correlation coefficient
+   */
+  function pearsonCorrelation(x: number[], y: number[]): number {
+    const n = x.length;
+    const sumX = x.reduce((a, b) => a + b, 0);
+    const sumY = y.reduce((a, b) => a + b, 0);
+    const sumXY = x.reduce((acc, xi, i) => acc + xi * y[i], 0);
+    const sumX2 = x.reduce((acc, xi) => acc + xi * xi, 0);
+    const sumY2 = y.reduce((acc, yi) => acc + yi * yi, 0);
+    
+    const numerator = n * sumXY - sumX * sumY;
+    const denominator = Math.sqrt(
+      (n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY)
+    );
+    
+    return numerator / denominator;
+  }
+  
+  describe('Research Correlation', () => {
+    it('correlates with Eloundou rankings (r > 0.7)', () => {
+      const ourScores: number[] = [];
+      const researchScores: number[] = [];
+      
+      for (const [socCode, researchScore] of Object.entries(ELOUNDOU_RANKINGS)) {
+        const ourScore = calculateRiskScoreSync({
+          occupationCode: socCode,
+          industryCode: 'other',
+          yearsExperience: 5,
+        });
+        
+        ourScores.push(ourScore.overall);
+        researchScores.push(researchScore);
+      }
+      
+      const correlation = pearsonCorrelation(ourScores, researchScores);
+      
+      console.log(`Correlation with Eloundou rankings: ${correlation.toFixed(3)}`);
+      
+      // Expect correlation > 0.7 (strong positive correlation)
+      expect(correlation).toBeGreaterThan(0.7);
+    });
+  });
+  ```
+- **Verification:**
+  - Research rankings are mapped to O*NET codes
+  - Correlation calculation is correct
+  - Our scores correlate > 0.7 with published research
+
+### Task 7: Create methodology documentation page
+
+- **Action:** Draft the methodology documentation explaining the scoring algorithm.
+- **Files:**
+  - `app/(marketing)/methodology/page.tsx`
+  - `app/(marketing)/sources/page.tsx`
+- **Implementation:**
+  ```typescript
+  // app/(marketing)/methodology/page.tsx
+  export default function MethodologyPage() {
+    return (
+      <main className="container mx-auto px-4 py-12 max-w-4xl">
+        <h1 className="text-3xl font-bold mb-8">How We Calculate AI Displacement Risk</h1>
+        
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold mb-4">The 4-Layer Scoring Model</h2>
+          <p className="text-gray-600 mb-4">
+            Our risk score combines four factors, each backed by occupational research and AI capability studies.
+          </p>
+          
+          <div className="bg-gray-50 p-6 rounded-lg mb-6 font-mono">
+            risk_score = (Layer1 × 35%) + (Layer2 × 35%) + (Industry Modifier) + (Experience Modifier)
+          </div>
+          
+          <div className="space-y-6">
+            <div className="border-l-4 border-blue-500 pl-4">
+              <h3 className="font-semibold">Layer 1: AI Exposure Baseline (35%)</h3>
+              <p className="text-gray-600">
+                Based on peer-reviewed research measuring how susceptible occupation tasks are to large language models and AI systems. 
+                Primary source: Eloundou et al. "GPTs are GPTs" (2023).
+              </p>
+            </div>
+            
+            <div className="border-l-4 border-green-500 pl-4">
+              <h3 className="font-semibold">Layer 2: Task Automation Analysis (35%)</h3>
+              <p className="text-gray-600">
+                Analysis of O*NET task descriptions for automation indicators. Tasks involving data entry, routine processing, 
+                and pattern-based work score higher. Tasks requiring physical dexterity, emotional intelligence, 
+                or novel problem-solving score lower.
+              </p>
+            </div>
+            
+            <div className="border-l-4 border-yellow-500 pl-4">
+              <h3 className="font-semibold">Layer 3: Industry Adoption Speed (15%)</h3>
+              <p className="text-gray-600">
+                Modifier based on how quickly your industry is adopting AI. Technology and finance sectors see faster adoption, 
+                while construction and hospitality adopt more slowly.
+              </p>
+            </div>
+            
+            <div className="border-l-4 border-purple-500 pl-4">
+              <h3 className="font-semibold">Layer 4: Experience Level (15%)</h3>
+              <p className="text-gray-600">
+                Modifier based on career stage. Entry-level workers face less risk (easier to pivot), 
+                while mid-career professionals in routine roles face higher risk.
+              </p>
+            </div>
+          </div>
+        </section>
+        
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold mb-4">Understanding Your Score</h2>
+          
+          <div className="grid gap-4">
+            <div className="flex items-center gap-4 p-4 bg-green-50 rounded">
+              <span className="text-2xl font-bold text-green-600">0-20%</span>
+              <span className="font-medium">Low Risk</span>
+              <span className="text-gray-600">Your role relies heavily on human skills that AI cannot replicate.</span>
+            </div>
+            <div className="flex items-center gap-4 p-4 bg-yellow-50 rounded">
+              <span className="text-2xl font-bold text-yellow-600">21-40%</span>
+              <span className="font-medium">Moderate Risk</span>
+              <span className="text-gray-600">Some tasks may be automated, but core functions remain human.</span>
+            </div>
+            <div className="flex items-center gap-4 p-4 bg-orange-50 rounded">
+              <span className="text-2xl font-bold text-orange-600">41-60%</span>
+              <span className="font-medium">Elevated Risk</span>
+              <span className="text-gray-600">Significant portions of your work may change. Adaptation recommended.</span>
+            </div>
+            <div className="flex items-center gap-4 p-4 bg-red-50 rounded">
+              <span className="text-2xl font-bold text-red-600">61-80%</span>
+              <span className="font-medium">High Risk</span>
+              <span className="text-gray-600">Many tasks in your role are prime candidates for AI automation.</span>
+            </div>
+            <div className="flex items-center gap-4 p-4 bg-red-100 rounded">
+              <span className="text-2xl font-bold text-red-700">81-100%</span>
+              <span className="font-medium">Very High Risk</span>
+              <span className="text-gray-600">Your role faces significant disruption. Career pivot strongly recommended.</span>
+            </div>
+          </div>
+        </section>
+        
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold mb-4">Limitations</h2>
+          <ul className="list-disc pl-6 space-y-2 text-gray-600">
+            <li>Scores are estimates based on current AI capabilities and occupational data</li>
+            <li>Individual job duties may differ from O*NET occupation averages</li>
+            <li>AI technology evolves rapidly — scores reflect a snapshot in time</li>
+            <li>Regulatory, ethical, and economic factors may slow actual automation</li>
+            <li>Your specific workplace may adopt AI faster or slower than industry average</li>
+          </ul>
+        </section>
+        
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">Our Sources</h2>
+          <p className="text-gray-600 mb-4">
+            See our <a href="/sources" className="text-blue-600 underline">full bibliography</a> for academic citations.
+          </p>
+        </section>
+      </main>
+    );
+  }
+  ```
+- **Verification:**
+  - Methodology page renders correctly
+  - All 4 layers are explained clearly
+  - Risk bands are documented
+  - Limitations section is honest
+  - Sources page links work
+
+## Verification Checklist
+
+- [ ] Gemini API key configured and working
+- [ ] Groq API key configured and working
+- [ ] Fallback chain works: Gemini → Groq → queue
+- [ ] Failed requests are queued with valid ID
+- [ ] Email notification sent for queued requests
+- [ ] Golden dataset has 50+ occupations
+- [ ] All golden dataset validation tests pass
+- [ ] Research correlation > 0.7 with Eloundou rankings
+- [ ] Methodology page documents all 4 layers
+- [ ] Limitations section is honest about constraints
+- [ ] Sources/bibliography page links to research
+
+## Success Criteria
+
+This plan is complete when:
+1. Dual-LLM client successfully calls Gemini with Groq fallback
+2. Failed LLM requests are queued and users are notified via email
+3. Golden dataset of 50+ occupations validates with passing tests
+4. Research correlation coefficient exceeds 0.7
+5. Methodology documentation page is complete with formula, explanations, and limitations
+6. All three tiers of validation pass: unit tests, golden dataset, research correlation
+
+## Notes
+
+- **LLM Rate Limits:** Gemini free tier has daily limits. Groq is backup for rate limit scenarios.
+- **Queue Processing:** In-memory queue is MVP solution. Production should use Supabase + background jobs.
+- **Research Data:** Eloundou rankings may need manual extraction from paper. Start with available occupations, expand over time.
+- **Correlation Target:** 0.7 is "strong" correlation. If we're below, review Layer 1 research scores first.
+- **Methodology Page:** This is marketing copy too — build trust through transparency.
+- **Golden Dataset Expansion:** Start with 30 occupations in Phase 1, expand to 50+ iteratively as we validate.
+
+---
+*Plan 05 of 5 for Phase 1: Foundation & Core Scoring*

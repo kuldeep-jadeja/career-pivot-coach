@@ -1,0 +1,604 @@
+# Plan 03: O*NET Data Pipeline
+
+**Requirements:** INFRA-07  
+**Estimated Time:** 3-4 hours  
+**Dependencies:** Plan 02 (database schema must exist for optional DB seeding)
+
+## Goal
+
+Download O*NET bulk CSV data, parse it into versioned JSON files (occupations, tasks, skills, work_activities), implement the data freshness transparency system, and optionally seed the Supabase database tables for admin queries.
+
+## Context
+
+**From PHASE-1-CONTEXT.md:**
+- Import all 4 core tables: Occupations, Tasks, Skills, Work Activities
+- Versioned snapshots: `public/data/onet-v28.3/` with `current` symlink
+- Hybrid storage: Static JSON (frontend) + Supabase tables (admin)
+- Data freshness transparency: Footer + banner + per-occupation confidence scores
+- Color coding: Green (< 1 year), Yellow (1-2 years), Red (3+ years)
+
+**O*NET Data Source:**
+- Download from: https://www.onetcenter.org/database.html
+- Format: CSV files in ZIP archive
+- Update frequency: Annual (typically Q1)
+- Current version: 28.3 (as of planning date)
+
+**Critical Pitfall (PITFALLS.md):**
+- Stale O*NET data undermines scores — document version clearly, plan quarterly refresh
+
+## Tasks
+
+### Task 1: Download O*NET bulk CSV data
+
+- **Action:** 
+  1. Visit https://www.onetcenter.org/database.html
+  2. Download the "Database" ZIP file (contains all CSV tables)
+  3. Extract to `data-processing/raw/` (this folder is git-ignored)
+  4. Identify required CSV files: `Occupation Data.txt`, `Task Statements.txt`, `Skills.txt`, `Work Activities.txt`
+  5. Create download script for reproducibility
+- **Files:**
+  - `data-processing/raw/.gitignore` (ignore all raw CSVs)
+  - `data-processing/scripts/download-onet.sh` (download script)
+  - `data-processing/README.md` (data processing instructions)
+- **Script:**
+  ```bash
+  #!/bin/bash
+  # download-onet.sh
+  # Downloads O*NET database and extracts required files
+  
+  ONET_VERSION="28_3"
+  DOWNLOAD_URL="https://www.onetcenter.org/dl_files/database/db_${ONET_VERSION}_excel.zip"
+  OUTPUT_DIR="./raw"
+  
+  mkdir -p $OUTPUT_DIR
+  
+  echo "Downloading O*NET Database v${ONET_VERSION}..."
+  curl -L $DOWNLOAD_URL -o "${OUTPUT_DIR}/onet_db.zip"
+  
+  echo "Extracting..."
+  unzip -o "${OUTPUT_DIR}/onet_db.zip" -d "${OUTPUT_DIR}"
+  
+  echo "Done. CSV files available in ${OUTPUT_DIR}/"
+  ```
+- **Verification:**
+  - CSV files exist in `data-processing/raw/`
+  - `Occupation Data.txt` contains ~1,000 rows
+  - Download is reproducible via script
+
+### Task 2: Create O*NET data parsing script
+
+- **Action:** Write TypeScript script to parse CSV files into structured JSON with proper typing.
+- **Files:**
+  - `data-processing/scripts/parse-onet.ts`
+  - `data-processing/scripts/types.ts` (O*NET raw data types)
+- **Implementation:**
+  ```typescript
+  // data-processing/scripts/types.ts
+  export interface RawOccupation {
+    'O*NET-SOC Code': string;
+    'Title': string;
+    'Description': string;
+  }
+  
+  export interface RawTask {
+    'O*NET-SOC Code': string;
+    'Task ID': string;
+    'Task': string;
+    'Task Type': string;
+    'Incumbents Responding': string;
+    'Date': string;
+    'Domain Source': string;
+  }
+  
+  export interface RawSkill {
+    'O*NET-SOC Code': string;
+    'Element ID': string;
+    'Element Name': string;
+    'Scale ID': string;
+    'Data Value': string;
+    'N': string;
+    'Standard Error': string;
+    'Lower CI Bound': string;
+    'Upper CI Bound': string;
+    'Recommend Suppress': string;
+    'Not Relevant': string;
+    'Date': string;
+    'Domain Source': string;
+  }
+  
+  // parse-onet.ts
+  import * as fs from 'fs';
+  import * as path from 'path';
+  import { parse } from 'csv-parse/sync';
+  
+  const RAW_DIR = './raw';
+  const OUTPUT_DIR = '../public/data';
+  const VERSION = '28.3';
+  
+  function parseOccupations() {
+    const content = fs.readFileSync(
+      path.join(RAW_DIR, 'Occupation Data.txt'),
+      'utf-8'
+    );
+    const records = parse(content, { columns: true, delimiter: '\t' });
+    
+    return records.map((r: any) => ({
+      socCode: r['O*NET-SOC Code'],
+      title: r['Title'],
+      description: r['Description'],
+    }));
+  }
+  
+  function parseTasks() {
+    const content = fs.readFileSync(
+      path.join(RAW_DIR, 'Task Statements.txt'),
+      'utf-8'
+    );
+    const records = parse(content, { columns: true, delimiter: '\t' });
+    
+    return records.map((r: any) => ({
+      socCode: r['O*NET-SOC Code'],
+      taskId: r['Task ID'],
+      description: r['Task'],
+      lastModified: r['Date'],
+    }));
+  }
+  
+  function parseSkills() {
+    const content = fs.readFileSync(
+      path.join(RAW_DIR, 'Skills.txt'),
+      'utf-8'
+    );
+    const records = parse(content, { columns: true, delimiter: '\t' });
+    
+    return records.map((r: any) => ({
+      socCode: r['O*NET-SOC Code'],
+      skillId: r['Element ID'],
+      name: r['Element Name'],
+      level: parseFloat(r['Data Value']) || 0,
+      importance: parseFloat(r['N']) || 0,
+      lastModified: r['Date'],
+    }));
+  }
+  
+  function parseWorkActivities() {
+    const content = fs.readFileSync(
+      path.join(RAW_DIR, 'Work Activities.txt'),
+      'utf-8'
+    );
+    const records = parse(content, { columns: true, delimiter: '\t' });
+    
+    return records.map((r: any) => ({
+      socCode: r['O*NET-SOC Code'],
+      activityId: r['Element ID'],
+      name: r['Element Name'],
+      importance: parseFloat(r['Data Value']) || 0,
+      lastModified: r['Date'],
+    }));
+  }
+  
+  async function main() {
+    const versionDir = path.join(OUTPUT_DIR, `onet-v${VERSION}`);
+    fs.mkdirSync(versionDir, { recursive: true });
+    
+    console.log('Parsing occupations...');
+    const occupations = parseOccupations();
+    fs.writeFileSync(
+      path.join(versionDir, 'occupations.json'),
+      JSON.stringify(occupations, null, 2)
+    );
+    console.log(`  → ${occupations.length} occupations`);
+    
+    console.log('Parsing tasks...');
+    const tasks = parseTasks();
+    fs.writeFileSync(
+      path.join(versionDir, 'tasks.json'),
+      JSON.stringify(tasks, null, 2)
+    );
+    console.log(`  → ${tasks.length} tasks`);
+    
+    console.log('Parsing skills...');
+    const skills = parseSkills();
+    fs.writeFileSync(
+      path.join(versionDir, 'skills.json'),
+      JSON.stringify(skills, null, 2)
+    );
+    console.log(`  → ${skills.length} skills`);
+    
+    console.log('Parsing work activities...');
+    const workActivities = parseWorkActivities();
+    fs.writeFileSync(
+      path.join(versionDir, 'work_activities.json'),
+      JSON.stringify(workActivities, null, 2)
+    );
+    console.log(`  → ${workActivities.length} work activities`);
+    
+    // Generate manifest with actual counts
+    const manifest = {
+      version: VERSION,
+      releaseDate: new Date().toISOString().split('T')[0],
+      downloadDate: new Date().toISOString().split('T')[0],
+      source: 'https://www.onetcenter.org/database.html',
+      occupationCount: occupations.length,
+      taskCount: tasks.length,
+      skillCount: skills.length,
+      workActivityCount: workActivities.length,
+    };
+    fs.writeFileSync(
+      path.join(versionDir, 'manifest.json'),
+      JSON.stringify(manifest, null, 2)
+    );
+    
+    console.log(`Done. Output written to ${versionDir}/`);
+    console.log(`Manifest: ${JSON.stringify(manifest, null, 2)}`);
+  }
+  
+  main();
+  ```
+- **Verification:**
+  - Script runs without errors: `npx tsx data-processing/scripts/parse-onet.ts`
+  - All 4 JSON files are created in versioned directory
+  - JSON structure matches TypeScript types
+  - **All 4 parsing functions implemented (occupations, tasks, skills, work_activities)**
+  - **Each JSON file contains expected minimum rows:**
+    - occupations.json: ~1,000 records
+    - tasks.json: ~19,000 records  
+    - skills.json: ~35,000 records
+    - work_activities.json: ~40,000 records
+  - **Manifest counts match actual JSON file record counts**
+
+### Task 3: Create versioned data output with current symlink
+
+- **Action:** 
+  1. Finalize output structure in `public/data/onet-v{VERSION}/`
+  2. Create `current` symlink pointing to active version
+  3. Create version manifest file with metadata
+- **Files:**
+  - `public/data/onet-v28.3/occupations.json`
+  - `public/data/onet-v28.3/tasks.json`
+  - `public/data/onet-v28.3/skills.json`
+  - `public/data/onet-v28.3/work_activities.json`
+  - `public/data/onet-v28.3/manifest.json` (version metadata)
+  - `public/data/current` (symlink or redirect)
+- **Manifest:**
+  ```json
+  {
+    "version": "28.3",
+    "releaseDate": "2024-01-15",
+    "downloadDate": "2024-03-30",
+    "source": "https://www.onetcenter.org/database.html",
+    "occupationCount": 1016,
+    "taskCount": 19847,
+    "skillCount": 35420,
+    "workActivityCount": 41330
+  }
+  ```
+- **Verification:**
+  - Versioned folder contains all 4 JSON files + manifest
+  - Symlink/redirect works for `public/data/current/`
+  - Can load data via `fetch('/data/current/occupations.json')`
+
+### Task 4: Create TypeScript types and data loader
+
+- **Action:** Create strongly-typed interfaces for O*NET data and a loader utility.
+- **Files:**
+  - `lib/data/types.ts` (O*NET TypeScript types)
+  - `lib/data/onet-loader.ts` (data loading utilities)
+- **Implementation:**
+  ```typescript
+  // lib/data/types.ts
+  export interface OnetOccupation {
+    socCode: string;           // e.g., "15-1252.00"
+    title: string;             // e.g., "Software Developers"
+    description: string;
+    alternateTitles?: string[];
+    lastModified?: string;     // For freshness calculation
+  }
+  
+  export interface OnetTask {
+    socCode: string;
+    taskId: string;
+    description: string;
+    importance?: number;       // 1-5 scale
+    lastModified?: string;
+  }
+  
+  export interface OnetSkill {
+    socCode: string;
+    skillId: string;
+    name: string;
+    description?: string;
+    level: number;             // 0-7 scale
+    importance: number;        // 1-5 scale
+  }
+  
+  export interface OnetWorkActivity {
+    socCode: string;
+    activityId: string;
+    name: string;
+    description?: string;
+    importance: number;
+  }
+  
+  export interface OnetManifest {
+    version: string;
+    releaseDate: string;
+    downloadDate: string;
+    source: string;
+    occupationCount: number;
+    taskCount: number;
+    skillCount: number;
+    workActivityCount: number;
+  }
+  
+  export type DataFreshnessLevel = 'fresh' | 'aging' | 'stale';
+  
+  // lib/data/onet-loader.ts
+  import type { 
+    OnetOccupation, 
+    OnetTask, 
+    OnetSkill, 
+    OnetWorkActivity,
+    OnetManifest 
+  } from './types';
+  
+  // Server-side loader (for API routes)
+  export async function loadOccupations(): Promise<OnetOccupation[]> {
+    const data = await import('../../public/data/current/occupations.json');
+    return data.default as OnetOccupation[];
+  }
+  
+  export async function loadTasks(): Promise<OnetTask[]> {
+    const data = await import('../../public/data/current/tasks.json');
+    return data.default as OnetTask[];
+  }
+  
+  export async function loadSkills(): Promise<OnetSkill[]> {
+    const data = await import('../../public/data/current/skills.json');
+    return data.default as OnetSkill[];
+  }
+  
+  export async function loadWorkActivities(): Promise<OnetWorkActivity[]> {
+    const data = await import('../../public/data/current/work_activities.json');
+    return data.default as OnetWorkActivity[];
+  }
+  
+  export async function loadManifest(): Promise<OnetManifest> {
+    const data = await import('../../public/data/current/manifest.json');
+    return data.default as OnetManifest;
+  }
+  
+  // Helper to get tasks for a specific occupation
+  export async function getTasksForOccupation(socCode: string): Promise<OnetTask[]> {
+    const tasks = await loadTasks();
+    return tasks.filter(t => t.socCode === socCode);
+  }
+  
+  // Helper to get skills for a specific occupation
+  export async function getSkillsForOccupation(socCode: string): Promise<OnetSkill[]> {
+    const skills = await loadSkills();
+    return skills.filter(s => s.socCode === socCode);
+  }
+  ```
+- **Verification:**
+  - Types compile without errors
+  - Loader functions return properly typed data
+  - Can query tasks/skills by occupation code
+
+### Task 5: Implement data freshness calculation
+
+- **Action:** Create utilities to calculate and display data freshness per occupation.
+- **Files:**
+  - `lib/data/freshness.ts`
+- **Implementation:**
+  ```typescript
+  // lib/data/freshness.ts
+  import type { DataFreshnessLevel } from './types';
+  
+  /**
+   * Calculate data freshness based on last modified date
+   * Green: < 1 year old
+   * Yellow: 1-2 years old  
+   * Red: 3+ years old
+   */
+  export function calculateFreshness(lastModified: string | undefined): DataFreshnessLevel {
+    if (!lastModified) return 'stale';
+    
+    const lastModifiedDate = new Date(lastModified);
+    const now = new Date();
+    const yearsOld = (now.getTime() - lastModifiedDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
+    
+    if (yearsOld < 1) return 'fresh';
+    if (yearsOld < 3) return 'aging';
+    return 'stale';
+  }
+  
+  export function getFreshnessColor(level: DataFreshnessLevel): string {
+    switch (level) {
+      case 'fresh': return 'text-green-600';
+      case 'aging': return 'text-yellow-600';
+      case 'stale': return 'text-red-600';
+    }
+  }
+  
+  export function getFreshnessLabel(level: DataFreshnessLevel): string {
+    switch (level) {
+      case 'fresh': return 'Recently updated';
+      case 'aging': return 'May be outdated';
+      case 'stale': return 'Data may be significantly outdated';
+    }
+  }
+  
+  /**
+   * Get overall dataset freshness from manifest
+   */
+  export function getDatasetFreshnessMessage(releaseDate: string): string {
+    const date = new Date(releaseDate);
+    const formatted = date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long' 
+    });
+    return `Based on O*NET data released ${formatted}`;
+  }
+  ```
+- **Verification:**
+  - Freshness calculation returns correct level for test dates
+  - Color utilities return valid Tailwind classes
+  - Message formatting works correctly
+
+### Task 6: (Optional) Seed Supabase database tables
+
+- **Action:** Create script to populate O*NET tables in Supabase for admin queries.
+- **Files:**
+  - `data-processing/scripts/seed-database.ts`
+- **Implementation:**
+  ```typescript
+  // data-processing/scripts/seed-database.ts
+  import { createClient } from '@supabase/supabase-js';
+  import * as fs from 'fs';
+  import * as path from 'path';
+  
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY! // Use service role for bulk insert
+  );
+  
+  async function seedOccupations() {
+    const data = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, '../../public/data/current/occupations.json'),
+        'utf-8'
+      )
+    );
+    
+    console.log(`Seeding ${data.length} occupations...`);
+    
+    // Batch insert in chunks of 100
+    for (let i = 0; i < data.length; i += 100) {
+      const chunk = data.slice(i, i + 100).map((occ: any) => ({
+        soc_code: occ.socCode,
+        title: occ.title,
+        description: occ.description,
+        last_modified: occ.lastModified,
+      }));
+      
+      const { error } = await supabase
+        .from('onet_occupations')
+        .upsert(chunk, { onConflict: 'soc_code' });
+      
+      if (error) {
+        console.error('Error seeding occupations:', error);
+        throw error;
+      }
+    }
+    
+    console.log('Occupations seeded successfully');
+  }
+  
+  // Similar functions for tasks, skills, work_activities...
+  
+  async function main() {
+    await seedOccupations();
+    await seedTasks();
+    await seedSkills();
+    await seedWorkActivities();
+    console.log('Database seeding complete!');
+  }
+  
+  main().catch(console.error);
+  ```
+- **Verification:**
+  - Script runs without errors
+  - Data appears in Supabase dashboard
+  - Counts match manifest expectations
+
+### Task 7: Create data transparency components
+
+- **Action:** Create React components for displaying data freshness (footer, banner, badges).
+- **Files:**
+  - `app/_components/data-freshness/footer-disclaimer.tsx`
+  - `app/_components/data-freshness/results-banner.tsx`
+  - `app/_components/data-freshness/freshness-badge.tsx`
+- **Implementation:**
+  ```typescript
+  // app/_components/data-freshness/footer-disclaimer.tsx
+  import { loadManifest } from '@/lib/data/onet-loader';
+  
+  export async function DataFooterDisclaimer() {
+    const manifest = await loadManifest();
+    
+    return (
+      <div className="text-sm text-gray-500 text-center py-4 border-t">
+        Powered by O*NET v{manifest.version} (released{' '}
+        {new Date(manifest.releaseDate).toLocaleDateString('en-US', {
+          month: 'short',
+          year: 'numeric',
+        })}) |{' '}
+        Last updated: {new Date(manifest.downloadDate).toLocaleDateString()} |{' '}
+        <a href="/methodology" className="underline hover:text-gray-700">
+          Methodology
+        </a>
+      </div>
+    );
+  }
+  
+  // app/_components/data-freshness/freshness-badge.tsx
+  import { calculateFreshness, getFreshnessColor, getFreshnessLabel } from '@/lib/data/freshness';
+  
+  interface FreshnessBadgeProps {
+    lastModified?: string;
+  }
+  
+  export function FreshnessBadge({ lastModified }: FreshnessBadgeProps) {
+    const level = calculateFreshness(lastModified);
+    const color = getFreshnessColor(level);
+    const label = getFreshnessLabel(level);
+    
+    return (
+      <span className={`text-xs ${color} flex items-center gap-1`}>
+        <span className="w-2 h-2 rounded-full bg-current" />
+        {label}
+      </span>
+    );
+  }
+  ```
+- **Verification:**
+  - Components render without errors
+  - Footer shows correct version info
+  - Freshness badge shows appropriate color
+
+## Verification Checklist
+
+- [ ] O*NET CSV files downloaded to `data-processing/raw/`
+- [ ] All 4 JSON files created in versioned folder
+- [ ] `manifest.json` contains accurate metadata
+- [ ] `current` symlink/redirect works
+- [ ] TypeScript types match JSON structure
+- [ ] Data loader functions return typed data
+- [ ] Freshness calculation works correctly
+- [ ] (Optional) Supabase tables populated
+- [ ] Transparency components render correctly
+- [ ] JSON files are committed to git (versioned data)
+- [ ] Raw CSV files are NOT committed (git-ignored)
+
+## Success Criteria
+
+This plan is complete when:
+1. O*NET data (occupations, tasks, skills, work_activities) is available as versioned JSON in `public/data/`
+2. Data freshness system calculates age and displays green/yellow/red indicators
+3. Footer disclaimer and results banner show O*NET version and date
+4. TypeScript loader utilities provide strongly-typed access to all data
+5. (Optional) Supabase O*NET tables are populated for admin queries
+6. Download/parse process is documented and reproducible
+
+## Notes
+
+- **Git LFS:** Consider using Git LFS for JSON files if they exceed 10MB. O*NET data typically totals ~50-100MB.
+- **Symlinks on Windows:** Windows requires admin privileges for symlinks. Alternative: use a `redirect.json` file that points to the active version.
+- **O*NET Registration:** Bulk download may require free registration at onetcenter.org
+- **Tab-Delimited Files:** O*NET CSVs are actually tab-delimited `.txt` files, not comma-separated
+- **Data Updates:** When O*NET releases a new version (annually), create new versioned folder, test thoroughly, update symlink
+- **Alternate Titles:** The Alternate Titles file provides synonyms for better fuzzy matching — consider importing in Task 2
+
+---
+*Plan 03 of 5 for Phase 1: Foundation & Core Scoring*
