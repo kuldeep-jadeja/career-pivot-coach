@@ -18,6 +18,7 @@ export async function createPayment(data: PaymentInsert) {
 
   const { data: payment, error } = await supabase
     .from('payments')
+    // @ts-ignore - Supabase type inference issue
     .insert(data)
     .select()
     .single();
@@ -155,6 +156,7 @@ export async function updatePaymentStatus(
 
   const { data, error } = await supabase
     .from('payments')
+    // @ts-ignore - Supabase type inference issue
     .update(updateData)
     .eq('id', id)
     .select()
@@ -213,7 +215,7 @@ export async function getTotalRevenue() {
     return 0;
   }
 
-  const total = data.reduce((sum, payment) => sum + payment.amount, 0);
+  const total = (data as Payment[]).reduce((sum, payment) => sum + payment.amount, 0);
   return total;
 }
 
@@ -238,7 +240,7 @@ export async function getPaymentCountByStatus() {
     };
   }
 
-  const counts = data.reduce((acc, payment) => {
+  const counts = (data as Payment[]).reduce((acc, payment) => {
     acc[payment.status] = (acc[payment.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);

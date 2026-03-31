@@ -22,6 +22,7 @@ export async function createAssessment(
 
   const { data: assessment, error } = await supabase
     .from('assessments')
+    // @ts-ignore - Supabase type inference issue with Database generic
     .insert(data)
     .select()
     .single();
@@ -129,6 +130,7 @@ export async function updateAssessmentScore(
 
   const { data: updated, error } = await supabase
     .from('assessments')
+    // @ts-ignore - Supabase type inference issue with Database generic
     .update({
       ...data,
       updated_at: new Date().toISOString(),
@@ -160,6 +162,7 @@ export async function linkAssessmentToUser(
 
   const { data, error } = await supabase
     .from('assessments')
+    // @ts-ignore - Supabase type inference issue
     .update({ user_id: userId })
     .eq('anonymous_id', anonymousId)
     .is('user_id', null) // Only link if not already linked

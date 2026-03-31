@@ -22,7 +22,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, verifyWebhookSignature, handleCheckoutCompleted, WEBHOOK_EVENTS } from '@/lib/payment/stripe';
-import { createAdminClient } from '@/lib/db/supabase';
+import { createPayment, updatePaymentStatus } from '@/lib/db/queries/payments';
+import { unlockPivotPlan } from '@/lib/db/queries/pivot-plans';
 
 /**
  * POST /api/payment/webhook
@@ -65,42 +66,20 @@ export async function POST(req: NextRequest) {
         // Extract payment data
         const { userId, assessmentId, paymentId, amount } = await handleCheckoutCompleted(session);
 
-        // Use admin client to bypass RLS (webhook is server-side)
-        const supabase = createAdminClient();
+        // 1. Create payment record using query helper
+        await createPayment({
+          user_id: userId,
+          assessment_id: assessmentId,
+          stripe_payment_id: paymentId,
+          stripe_checkout_session_id: session.id,
+          amount,
+          currency: 'usd',
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+        });
 
-        // 1. Create payment record
-        const { error: paymentError } = await supabase
-          .from('payments')
-          .insert({
-            user_id: userId,
-            assessment_id: assessmentId,
-            stripe_payment_id: paymentId,
-            stripe_checkout_session_id: session.id,
-            amount,
-            currency: 'usd',
-            status: 'completed',
-            completed_at: new Date().toISOString(),
-          });
-
-        if (paymentError) {
-          console.error('[Webhook] Failed to create payment record:', paymentError);
-          throw paymentError;
-        }
-
-        // 2. Unlock pivot plan
-        const { error: unlockError } = await supabase
-          .from('pivot_plans')
-          .update({
-            status: 'unlocked',
-            unlocked_at: new Date().toISOString(),
-          })
-          .eq('assessment_id', assessmentId)
-          .eq('user_id', userId);
-
-        if (unlockError) {
-          console.error('[Webhook] Failed to unlock pivot plan:', unlockError);
-          throw unlockError;
-        }
+        // 2. Unlock pivot plan using query helper
+        await unlockPivotPlan(assessmentId, userId);
 
         console.log('[Webhook] Payment processed successfully:', paymentId);
         
