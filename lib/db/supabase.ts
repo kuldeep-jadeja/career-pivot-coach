@@ -2,23 +2,81 @@
  * Supabase Client
  * 
  * Purpose: Supabase client initialization for database and auth
- * DO NOT implement actual connection until Plan 03 (Supabase setup)
+ * Supports both browser and server-side contexts
  */
+
+import { createBrowserClient } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import type { Database } from './types';
 
 /**
- * Supabase client stub
+ * Create a Supabase client for use in Client Components
  * 
- * TODO (Plan 03): Install @supabase/supabase-js
- * TODO (Plan 03): Initialize with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
- * TODO (Plan 03): Create server and client versions
+ * SETUP REQUIRED:
+ * 1. Create a Supabase project at https://supabase.com
+ * 2. Go to Settings > API to get your credentials
+ * 3. Add to .env.local:
+ *    NEXT_PUBLIC_SUPABASE_URL=your_project_url
+ *    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
  */
+export function createClient() {
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
-export const supabase = null; // Stub - will be implemented in Plan 03
+/**
+ * Create a Supabase client for use in Server Components and Server Actions
+ * 
+ * This version manages cookies properly for SSR and auth state
+ */
+export async function createServerSupabaseClient() {
+  const cookieStore = await cookies();
 
-// Type stubs for future use
-export type SupabaseClient = any;
-export type User = {
-  id: string;
-  email: string;
-  // TODO: Add user profile fields
-};
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  );
+}
+
+/**
+ * Create an admin Supabase client with service role key
+ * 
+ * USE WITH CAUTION: Bypasses Row Level Security
+ * Only use in server-side code for admin operations
+ * 
+ * SETUP: Add SUPABASE_SERVICE_ROLE_KEY to .env.local
+ */
+export function createAdminClient() {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set');
+  }
+
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
+
+// Re-export types for convenience
+export type { Database } from './types';
