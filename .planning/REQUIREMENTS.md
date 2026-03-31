@@ -93,12 +93,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Technical Infrastructure (INFRA)
 
-- [ ] **INFRA-01**: Next.js project setup with TypeScript, Tailwind, App Router
+- [x] **INFRA-01**: Next.js project setup with TypeScript, Tailwind, App Router
 - [ ] **INFRA-02**: Supabase project created with PostgreSQL database and Auth configured
 - [ ] **INFRA-03**: Resend account configured for transactional email (100/day free tier)
 - [ ] **INFRA-04**: Stripe account configured with test mode and live mode webhooks
-- [ ] **INFRA-05**: Vercel project configured for deployment (free tier)
-- [ ] **INFRA-06**: Environment variables properly configured (.env.local, Vercel dashboard)
+- [x] **INFRA-05**: Vercel project configured for deployment (free tier)
+- [x] **INFRA-06**: Environment variables properly configured (.env.local, Vercel dashboard)
 - [ ] **INFRA-07**: O*NET data processing pipeline (download → parse → JSON → version control)
 - [ ] **INFRA-08**: Deterministic scoring engine implemented as pure TypeScript functions
 - [ ] **INFRA-09**: Rate limiting on free assessment endpoint (10 per hour per IP)
@@ -164,12 +164,12 @@ Which phases cover which requirements. Populated during roadmap creation (2026-0
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Pending |
 | INFRA-03 | Phase 1 | Pending |
 | INFRA-04 | Phase 1 | Pending |
-| INFRA-05 | Phase 1 | Pending |
-| INFRA-06 | Phase 1 | Pending |
+| INFRA-05 | Phase 1 | Complete |
+| INFRA-06 | Phase 1 | Complete |
 | INFRA-07 | Phase 1 | Pending |
 | INFRA-08 | Phase 1 | Pending |
 | INFRA-09 | Phase 5 | Pending |

@@ -61,11 +61,13 @@ Unautomatable delivers AI displacement risk assessment paired with actionable ca
 - **Job title mapping hell** (Pitfall 2) — Build disambiguation UI logic from start, log confidence scores
 
 **Plans:**
-1. [Project Setup & Infrastructure Foundation](phases/01/plans/01-project-setup.md) (2-3h, 6 tasks)
-2. [Database Schema & Services Integration](phases/01/plans/02-database-services.md) (3-4h, 6 tasks)
-3. [O*NET Data Pipeline](phases/01/plans/03-onet-pipeline.md) (3-4h, 7 tasks)
-4. [Core Scoring Engine](phases/01/plans/04-scoring-engine.md) (3-4h, 7 tasks)
-5. [Dual-LLM Client & Validation Suite](phases/01/plans/05-llm-validation.md) (3-4h, 7 tasks)
+1. ✅ [Project Setup & Infrastructure Foundation](phases/01/plans/01-01-PLAN.md) - COMPLETE (16 min, 6 tasks, 8 commits)
+2. [ ] [Database Schema & Services Integration](phases/01/plans/01-02-PLAN.md) (3-4h, 6 tasks)
+3. [ ] [O*NET Data Pipeline](phases/01/plans/01-03-PLAN.md) (3-4h, 7 tasks)
+4. [ ] [Core Scoring Engine](phases/01/plans/01-04-PLAN.md) (3-4h, 7 tasks)
+5. [ ] [Dual-LLM Client & Validation Suite](phases/01/plans/01-05-PLAN.md) (3-4h, 7 tasks)
+
+**Progress:** 1/5 plans complete (20%)
 
 ---
 
