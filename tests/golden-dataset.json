@@ -1,0 +1,441 @@
+{
+  "version": "1.0.0",
+  "description": "Golden dataset for risk scoring validation with 50+ occupations across 6 categories and 5 risk bands",
+  "created": "2026-04-01",
+  "requirements": {
+    "minimumTotal": 50,
+    "minimumPerCategory": 8,
+    "minimumPerRiskBand": 10,
+    "categories": ["tech", "healthcare", "trades", "creative", "management", "service"],
+    "riskBands": ["low_0_20", "moderate_21_40", "elevated_41_60", "high_61_80", "very_high_81_100"]
+  },
+  "occupations": [
+    {
+      "socCode": "15-1252.00",
+      "title": "Software Developers, Applications",
+      "expectedRange": { "min": 60, "max": 80 },
+      "rationale": "High AI exposure (coding assistance, code generation), but creative/architectural work remains human. Layer 1 research score: 78.",
+      "category": "tech"
+    },
+    {
+      "socCode": "15-1251.00",
+      "title": "Computer Programmers",
+      "expectedRange": { "min": 65, "max": 85 },
+      "rationale": "Very high automation potential for routine coding tasks. AI pair programming tools already replacing basic work. Layer 1: 80.",
+      "category": "tech"
+    },
+    {
+      "socCode": "15-2051.00",
+      "title": "Data Scientists",
+      "expectedRange": { "min": 70, "max": 90 },
+      "rationale": "AI tools automate data cleaning, model selection, but domain expertise and business insight remain critical. Layer 1: 85.",
+      "category": "tech"
+    },
+    {
+      "socCode": "15-1211.00",
+      "title": "Computer Systems Analysts",
+      "expectedRange": { "min": 65, "max": 85 },
+      "rationale": "System design and requirements gathering partially automatable. Layer 1: 82.",
+      "category": "tech"
+    },
+    {
+      "socCode": "15-1212.00",
+      "title": "Information Security Analysts",
+      "expectedRange": { "min": 55, "max": 75 },
+      "rationale": "AI assists threat detection but strategic security decisions require human judgment. Layer 1: 76.",
+      "category": "tech"
+    },
+    {
+      "socCode": "15-1244.00",
+      "title": "Network and Computer Systems Administrators",
+      "expectedRange": { "min": 55, "max": 75 },
+      "rationale": "Automation handles routine tasks, but complex troubleshooting needs human expertise. Layer 1: 72.",
+      "category": "tech"
+    },
+    {
+      "socCode": "15-1299.08",
+      "title": "Web Developers",
+      "expectedRange": { "min": 70, "max": 90 },
+      "rationale": "Low-code/no-code tools and AI code generation rapidly automating basic web development. Layer 1: 88.",
+      "category": "tech"
+    },
+    {
+      "socCode": "11-3021.00",
+      "title": "Computer and Information Systems Managers",
+      "expectedRange": { "min": 40, "max": 60 },
+      "rationale": "Leadership, team coordination, and strategic IT planning resist automation. Layer 1: 52.",
+      "category": "tech"
+    },
+    {
+      "socCode": "29-1141.00",
+      "title": "Registered Nurses",
+      "expectedRange": { "min": 20, "max": 40 },
+      "rationale": "Physical care, emotional support, complex clinical judgment - core nursing tasks resist automation. Layer 1: 35.",
+      "category": "healthcare"
+    },
+    {
+      "socCode": "29-1215.00",
+      "title": "Family Medicine Physicians",
+      "expectedRange": { "min": 15, "max": 35 },
+      "rationale": "Diagnostic support from AI but patient relationships, complex cases need human physicians. Layer 1: 28.",
+      "category": "healthcare"
+    },
+    {
+      "socCode": "29-1071.00",
+      "title": "Physician Assistants",
+      "expectedRange": { "min": 25, "max": 45 },
+      "rationale": "AI diagnostic tools augment but cannot replace hands-on patient care and clinical decisions. Layer 1: 38.",
+      "category": "healthcare"
+    },
+    {
+      "socCode": "29-1122.00",
+      "title": "Occupational Therapists",
+      "expectedRange": { "min": 20, "max": 40 },
+      "rationale": "Highly personalized physical therapy requiring human adaptation and empathy. Layer 1: 32.",
+      "category": "healthcare"
+    },
+    {
+      "socCode": "29-1123.00",
+      "title": "Physical Therapists",
+      "expectedRange": { "min": 20, "max": 40 },
+      "rationale": "Physical assessment and hands-on treatment planning require human touch and judgment. Layer 1: 34.",
+      "category": "healthcare"
+    },
+    {
+      "socCode": "31-1120.00",
+      "title": "Home Health Aides",
+      "expectedRange": { "min": 10, "max": 30 },
+      "rationale": "Hands-on personal care in varied home environments. Physical and emotional work. Layer 1: 25.",
+      "category": "healthcare"
+    },
+    {
+      "socCode": "31-9092.00",
+      "title": "Medical Assistants",
+      "expectedRange": { "min": 25, "max": 45 },
+      "rationale": "Some administrative tasks automatable, but patient interaction and clinical support remain. Layer 1: 40.",
+      "category": "healthcare"
+    },
+    {
+      "socCode": "29-2061.00",
+      "title": "Licensed Practical Nurses",
+      "expectedRange": { "min": 30, "max": 50 },
+      "rationale": "Mix of routine care (automatable documentation) and hands-on patient care (not automatable). Layer 1: 42.",
+      "category": "healthcare"
+    },
+    {
+      "socCode": "31-9097.00",
+      "title": "Phlebotomists",
+      "expectedRange": { "min": 35, "max": 55 },
+      "rationale": "Physical skill drawing blood, but data entry and scheduling automatable. Layer 1: 48.",
+      "category": "healthcare"
+    },
+    {
+      "socCode": "47-2111.00",
+      "title": "Electricians",
+      "expectedRange": { "min": 5, "max": 25 },
+      "rationale": "Physical installation work in unpredictable environments. Safety-critical, manual dexterity required. Layer 1: 15.",
+      "category": "trades"
+    },
+    {
+      "socCode": "47-2152.00",
+      "title": "Plumbers, Pipefitters, and Steamfitters",
+      "expectedRange": { "min": 5, "max": 20 },
+      "rationale": "Physical work in varied, unpredictable situations requiring problem-solving and manual skill. Layer 1: 12.",
+      "category": "trades"
+    },
+    {
+      "socCode": "47-2031.00",
+      "title": "Carpenters",
+      "expectedRange": { "min": 10, "max": 30 },
+      "rationale": "Precision manual work adapting to unique construction contexts. Layer 1: 20.",
+      "category": "trades"
+    },
+    {
+      "socCode": "47-2061.00",
+      "title": "Construction Laborers",
+      "expectedRange": { "min": 10, "max": 28 },
+      "rationale": "Heavy physical labor in dynamic, outdoor environments. Layer 1: 18.",
+      "category": "trades"
+    },
+    {
+      "socCode": "49-9071.00",
+      "title": "Maintenance and Repair Workers, General",
+      "expectedRange": { "min": 12, "max": 32 },
+      "rationale": "Varied repair tasks requiring diagnostic problem-solving in unpredictable conditions. Layer 1: 22.",
+      "category": "trades"
+    },
+    {
+      "socCode": "47-2073.00",
+      "title": "Operating Engineers and Other Construction Equipment Operators",
+      "expectedRange": { "min": 8, "max": 28 },
+      "rationale": "Heavy equipment operation with safety judgments in dynamic construction sites. Layer 1: 16.",
+      "category": "trades"
+    },
+    {
+      "socCode": "49-3023.00",
+      "title": "Automotive Service Technicians and Mechanics",
+      "expectedRange": { "min": 15, "max": 35 },
+      "rationale": "Diagnostic software assists, but hands-on repair work in varied vehicle conditions requires expertise. Layer 1: 24.",
+      "category": "trades"
+    },
+    {
+      "socCode": "49-9041.00",
+      "title": "Industrial Machinery Mechanics",
+      "expectedRange": { "min": 12, "max": 32 },
+      "rationale": "Complex machinery diagnosis and physical repair. Some monitoring automatable. Layer 1: 21.",
+      "category": "trades"
+    },
+    {
+      "socCode": "27-1024.00",
+      "title": "Graphic Designers",
+      "expectedRange": { "min": 50, "max": 70 },
+      "rationale": "AI design tools augment work but creative direction, client relationships remain human. Layer 1: 65.",
+      "category": "creative"
+    },
+    {
+      "socCode": "27-3043.00",
+      "title": "Writers and Authors",
+      "expectedRange": { "min": 55, "max": 75 },
+      "rationale": "AI writing tools create drafts but original voice, storytelling, editing need human creativity. Layer 1: 72.",
+      "category": "creative"
+    },
+    {
+      "socCode": "27-1014.00",
+      "title": "Multimedia Artists and Animators",
+      "expectedRange": { "min": 45, "max": 65 },
+      "rationale": "AI can generate assets but artistic vision, character development are human skills. Layer 1: 58.",
+      "category": "creative"
+    },
+    {
+      "socCode": "27-3091.00",
+      "title": "Interpreters and Translators",
+      "expectedRange": { "min": 55, "max": 75 },
+      "rationale": "Machine translation handles basic text, but nuanced cultural/contextual translation needs humans. Layer 1: 70.",
+      "category": "creative"
+    },
+    {
+      "socCode": "27-2012.00",
+      "title": "Producers and Directors",
+      "expectedRange": { "min": 30, "max": 50 },
+      "rationale": "Creative vision, team leadership, artistic decisions resist automation. AI assists post-production. Layer 1: 42.",
+      "category": "creative"
+    },
+    {
+      "socCode": "27-1025.00",
+      "title": "Interior Designers",
+      "expectedRange": { "min": 45, "max": 65 },
+      "rationale": "AI tools for visualization, but client relationships and spatial creativity remain human. Layer 1: 56.",
+      "category": "creative"
+    },
+    {
+      "socCode": "27-4032.00",
+      "title": "Film and Video Editors",
+      "expectedRange": { "min": 50, "max": 70 },
+      "rationale": "AI editing tools automate cuts, but storytelling rhythm and creative choices are human. Layer 1: 62.",
+      "category": "creative"
+    },
+    {
+      "socCode": "27-3031.00",
+      "title": "Public Relations Specialists",
+      "expectedRange": { "min": 50, "max": 70 },
+      "rationale": "AI generates press releases but relationship building and crisis management need humans. Layer 1: 64.",
+      "category": "creative"
+    },
+    {
+      "socCode": "11-1011.00",
+      "title": "Chief Executives",
+      "expectedRange": { "min": 25, "max": 45 },
+      "rationale": "Strategic decision-making, stakeholder relationships, leadership - fundamentally human. Layer 1: 38.",
+      "category": "management"
+    },
+    {
+      "socCode": "11-2021.00",
+      "title": "Marketing Managers",
+      "expectedRange": { "min": 35, "max": 55 },
+      "rationale": "AI tools for analytics and targeting, but strategic brand decisions require human judgment. Layer 1: 48.",
+      "category": "management"
+    },
+    {
+      "socCode": "11-9111.00",
+      "title": "Medical and Health Services Managers",
+      "expectedRange": { "min": 25, "max": 45 },
+      "rationale": "Complex healthcare operations, regulatory compliance, and patient care oversight. Layer 1: 35.",
+      "category": "management"
+    },
+    {
+      "socCode": "11-3031.00",
+      "title": "Financial Managers",
+      "expectedRange": { "min": 40, "max": 60 },
+      "rationale": "AI handles analysis and forecasting, but strategic financial decisions and risk management need humans. Layer 1: 55.",
+      "category": "management"
+    },
+    {
+      "socCode": "13-1111.00",
+      "title": "Management Analysts",
+      "expectedRange": { "min": 50, "max": 70 },
+      "rationale": "Data analysis automatable but strategic recommendations and change management are human. Layer 1: 65.",
+      "category": "management"
+    },
+    {
+      "socCode": "11-3011.00",
+      "title": "Administrative Services Managers",
+      "expectedRange": { "min": 40, "max": 60 },
+      "rationale": "Operations coordination and team management. Some admin tasks automatable. Layer 1: 52.",
+      "category": "management"
+    },
+    {
+      "socCode": "11-9051.00",
+      "title": "Food Service Managers",
+      "expectedRange": { "min": 30, "max": 50 },
+      "rationale": "Staff coordination, quality control, customer service - human-centric management. Layer 1: 42.",
+      "category": "management"
+    },
+    {
+      "socCode": "13-1161.00",
+      "title": "Market Research Analysts",
+      "expectedRange": { "min": 55, "max": 75 },
+      "rationale": "Data analysis highly automatable but strategic insights and recommendations need human interpretation. Layer 1: 72.",
+      "category": "management"
+    },
+    {
+      "socCode": "41-2031.00",
+      "title": "Retail Salespersons",
+      "expectedRange": { "min": 35, "max": 55 },
+      "rationale": "Self-checkout and AI recommendations automate some tasks, but human interaction still valued. Layer 1: 45.",
+      "category": "service"
+    },
+    {
+      "socCode": "35-3023.00",
+      "title": "Fast Food and Counter Workers",
+      "expectedRange": { "min": 15, "max": 35 },
+      "rationale": "Automated ordering exists but food preparation and customer service remain largely manual. Layer 1: 22.",
+      "category": "service"
+    },
+    {
+      "socCode": "35-3031.00",
+      "title": "Waiters and Waitresses",
+      "expectedRange": { "min": 12, "max": 32 },
+      "rationale": "Personal service, menu recommendations, customer interaction are inherently human. Layer 1: 20.",
+      "category": "service"
+    },
+    {
+      "socCode": "35-2014.00",
+      "title": "Cooks, Restaurant",
+      "expectedRange": { "min": 15, "max": 35 },
+      "rationale": "Some automated cooking equipment, but recipe adaptation and quality judgment need humans. Layer 1: 24.",
+      "category": "service"
+    },
+    {
+      "socCode": "39-5012.00",
+      "title": "Hairdressers, Hairstylists, and Cosmetologists",
+      "expectedRange": { "min": 10, "max": 28 },
+      "rationale": "Highly manual, creative, client-relationship-driven work. Layer 1: 18.",
+      "category": "service"
+    },
+    {
+      "socCode": "39-9011.00",
+      "title": "Childcare Workers",
+      "expectedRange": { "min": 5, "max": 25 },
+      "rationale": "Emotional care, supervision, child development - fundamentally human work. Layer 1: 15.",
+      "category": "service"
+    },
+    {
+      "socCode": "43-4051.00",
+      "title": "Customer Service Representatives",
+      "expectedRange": { "min": 60, "max": 80 },
+      "rationale": "Chatbots handle routine queries, but complex problem-solving and empathy remain human. Layer 1: 75.",
+      "category": "service"
+    },
+    {
+      "socCode": "41-1011.00",
+      "title": "First-Line Supervisors of Retail Sales Workers",
+      "expectedRange": { "min": 30, "max": 50 },
+      "rationale": "Team management, conflict resolution, training are human skills. Some scheduling automatable. Layer 1: 42.",
+      "category": "service"
+    },
+    {
+      "socCode": "43-9061.00",
+      "title": "Office Clerks, General",
+      "expectedRange": { "min": 75, "max": 95 },
+      "rationale": "Very high automation potential - data entry, filing, scheduling are core AI strengths. Layer 1: 88.",
+      "category": "administrative"
+    },
+    {
+      "socCode": "43-3031.00",
+      "title": "Bookkeeping, Accounting, and Auditing Clerks",
+      "expectedRange": { "min": 75, "max": 95 },
+      "rationale": "Routine bookkeeping tasks highly automatable with accounting software and AI. Layer 1: 90.",
+      "category": "administrative"
+    },
+    {
+      "socCode": "43-6014.00",
+      "title": "Secretaries and Administrative Assistants",
+      "expectedRange": { "min": 80, "max": 100 },
+      "rationale": "Scheduling, document preparation, data entry - all prime automation targets. Layer 1: 92.",
+      "category": "administrative"
+    },
+    {
+      "socCode": "13-2011.00",
+      "title": "Accountants and Auditors",
+      "expectedRange": { "min": 55, "max": 75 },
+      "rationale": "Routine bookkeeping automatable, but professional judgment, auditing, advisory less so. Layer 1: 70.",
+      "category": "finance"
+    },
+    {
+      "socCode": "13-2051.00",
+      "title": "Financial Analysts",
+      "expectedRange": { "min": 55, "max": 75 },
+      "rationale": "Financial modeling automated but strategic investment decisions need human insight. Layer 1: 68.",
+      "category": "finance"
+    },
+    {
+      "socCode": "25-2021.00",
+      "title": "Elementary School Teachers",
+      "expectedRange": { "min": 20, "max": 40 },
+      "rationale": "Child development, classroom management, emotional support - core teaching is human. Layer 1: 32.",
+      "category": "education"
+    },
+    {
+      "socCode": "25-2031.00",
+      "title": "Secondary School Teachers",
+      "expectedRange": { "min": 22, "max": 42 },
+      "rationale": "Content delivery can be augmented by AI but mentorship and student engagement are human. Layer 1: 35.",
+      "category": "education"
+    },
+    {
+      "socCode": "53-3032.00",
+      "title": "Heavy and Tractor-Trailer Truck Drivers",
+      "expectedRange": { "min": 45, "max": 65 },
+      "rationale": "Autonomous vehicles advancing but regulatory, safety, last-mile challenges remain. Layer 1: 58.",
+      "category": "transportation"
+    },
+    {
+      "socCode": "23-1011.00",
+      "title": "Lawyers",
+      "expectedRange": { "min": 50, "max": 70 },
+      "rationale": "Legal research and document review automatable, but courtroom advocacy and client counseling remain human. Layer 1: 62.",
+      "category": "legal"
+    },
+    {
+      "socCode": "23-2011.00",
+      "title": "Paralegals and Legal Assistants",
+      "expectedRange": { "min": 75, "max": 95 },
+      "rationale": "Document review, legal research, filing - highly automatable with AI legal tools. Layer 1: 88.",
+      "category": "legal"
+    },
+    {
+      "socCode": "33-3051.00",
+      "title": "Police and Sheriff's Patrol Officers",
+      "expectedRange": { "min": 15, "max": 35 },
+      "rationale": "Judgment in unpredictable situations, community relationships, crisis intervention are human. Layer 1: 25.",
+      "category": "protective"
+    },
+    {
+      "socCode": "33-2011.00",
+      "title": "Firefighters",
+      "expectedRange": { "min": 10, "max": 28 },
+      "rationale": "Physical emergency response, life-safety decisions, teamwork in dynamic situations. Layer 1: 18.",
+      "category": "protective"
+    }
+  ]
+}
