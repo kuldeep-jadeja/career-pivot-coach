@@ -1,0 +1,27 @@
+[
+  {
+    "socCode": "15-1252.00",
+    "title": "Software Developers",
+    "description": "Research, design, and develop computer and network software or specialized utility programs."
+  },
+  {
+    "socCode": "11-1021.00",
+    "title": "General and Operations Managers",
+    "description": "Plan, direct, or coordinate the operations of public or private sector organizations."
+  },
+  {
+    "socCode": "29-1141.00",
+    "title": "Registered Nurses",
+    "description": "Assess patient health problems and needs, develop and implement nursing care plans, and maintain medical records."
+  },
+  {
+    "socCode": "13-2011.00",
+    "title": "Accountants and Auditors",
+    "description": "Examine, analyze, and interpret accounting records to prepare financial statements, give advice, or audit and evaluate statements prepared by others."
+  },
+  {
+    "socCode": "41-3099.00",
+    "title": "Sales Representatives, Services, All Other",
+    "description": "All sales representatives, services not listed separately."
+  }
+]

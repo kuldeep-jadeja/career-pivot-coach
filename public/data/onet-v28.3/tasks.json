@@ -1,0 +1,32 @@
+[
+  {
+    "socCode": "15-1252.00",
+    "taskId": "1",
+    "description": "Develop and direct software system testing and validation procedures.",
+    "lastModified": "2023-01-15"
+  },
+  {
+    "socCode": "15-1252.00",
+    "taskId": "2",
+    "description": "Modify existing software to correct errors, adapt to new hardware, or improve performance.",
+    "lastModified": "2023-01-15"
+  },
+  {
+    "socCode": "15-1252.00",
+    "taskId": "3",
+    "description": "Design and develop software systems, using scientific analysis and mathematical models.",
+    "lastModified": "2023-01-15"
+  },
+  {
+    "socCode": "11-1021.00",
+    "taskId": "4",
+    "description": "Direct and coordinate activities of businesses or departments concerned with production, pricing, sales, or distribution.",
+    "lastModified": "2023-02-10"
+  },
+  {
+    "socCode": "11-1021.00",
+    "taskId": "5",
+    "description": "Review financial statements, sales or activity reports, and other performance data.",
+    "lastModified": "2023-02-10"
+  }
+]

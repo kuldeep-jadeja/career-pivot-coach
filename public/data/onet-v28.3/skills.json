@@ -1,0 +1,42 @@
+[
+  {
+    "socCode": "15-1252.00",
+    "skillId": "2.A.1.a",
+    "name": "Programming",
+    "level": 5.5,
+    "importance": 4.8,
+    "lastModified": "2023-01-15"
+  },
+  {
+    "socCode": "15-1252.00",
+    "skillId": "2.A.1.b",
+    "name": "Systems Analysis",
+    "level": 4.8,
+    "importance": 4.5,
+    "lastModified": "2023-01-15"
+  },
+  {
+    "socCode": "15-1252.00",
+    "skillId": "2.A.1.c",
+    "name": "Critical Thinking",
+    "level": 5.2,
+    "importance": 4.6,
+    "lastModified": "2023-01-15"
+  },
+  {
+    "socCode": "11-1021.00",
+    "skillId": "2.B.1.a",
+    "name": "Management of Personnel Resources",
+    "level": 5,
+    "importance": 4.7,
+    "lastModified": "2023-02-10"
+  },
+  {
+    "socCode": "11-1021.00",
+    "skillId": "2.B.1.b",
+    "name": "Time Management",
+    "level": 4.5,
+    "importance": 4.3,
+    "lastModified": "2023-02-10"
+  }
+]
