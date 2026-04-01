@@ -2,7 +2,6 @@
  * LLM Integration Types
  * 
  * Purpose: Type definitions for LLM API responses (Gemini + Groq)
- * DO NOT implement actual integration until Plan 04 (Pivot Generation)
  */
 
 /**
@@ -11,24 +10,42 @@
 export type LLMProvider = 'gemini' | 'groq';
 
 /**
- * LLM request parameters
- */
-export interface LLMRequest {
-  prompt: string;
-  provider: LLMProvider;
-  temperature?: number;
-  maxTokens?: number;
-  // TODO: Add streaming support
-}
-
-/**
  * LLM response structure
  */
 export interface LLMResponse {
   content: string;
-  provider: LLMProvider;
+  provider: 'gemini' | 'groq';
+  model: string;
   tokensUsed?: number;
-  cached?: boolean;
+  latencyMs: number;
+}
+
+/**
+ * LLM error structure
+ */
+export interface LLMError {
+  provider: 'gemini' | 'groq';
+  error: string;
+  code?: string;
+  retryable: boolean;
+}
+
+/**
+ * Narrative generation request
+ */
+export interface NarrativeRequest {
+  pivotPath: {
+    currentRole: string;
+    targetRole: string;
+    skillGaps: string[];
+    transferableSkills: string[];
+    fitScore: number;
+  };
+  userContext: {
+    yearsExperience: number;
+    timeAvailable: number; // hours per week
+    constraints?: string[];
+  };
 }
 
 /**
@@ -62,6 +79,3 @@ export interface Resource {
   type: 'course' | 'tutorial' | 'documentation' | 'book';
   estimatedTime?: string;
 }
-
-// TODO (Plan 04): Add rate limiting types
-// TODO (Plan 04): Add queue types for fallback strategy
