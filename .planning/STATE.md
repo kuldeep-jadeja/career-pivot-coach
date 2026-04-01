@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-last_updated: "2026-03-31T10:14:49.000Z"
+last_updated: "2026-04-01T10:37:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 3
 ---
 
 # Project State: Unautomatable
 
-**Last Updated:** 2026-03-31  
+**Last Updated:** 2026-04-01  
 **Project Phase:** Phase 1 - Foundation & Core Scoring (In Progress)
 
 ---
@@ -24,7 +24,7 @@ progress:
 Help mid-career professionals assess their AI displacement risk and get personalized, actionable 90-day career pivot plans at an impulse-buy price point ($19 one-time).
 
 ### Current Focus
-Phase 1 Plan 01 complete: Next.js infrastructure, shadcn/ui components, directory structure, environment variables, Vercel deployment config, and test infrastructure (Vitest) established. Ready for Plan 02: Database Schema & Services Integration.
+Phase 1 Plans 01-03 complete: Infrastructure (Next.js, Tailwind, shadcn/ui), Database (Supabase with RLS, Stripe, Resend), and O*NET Data Pipeline (CSV parser, data loader, freshness system) established. Ready for Plan 04: Core Scoring Engine.
 
 ### Key Constraints
 - **Zero budget:** Vercel free tier, Supabase free tier, Resend free tier (100 emails/day)
@@ -41,15 +41,15 @@ Phase 1 Plan 01 complete: Next.js infrastructure, shadcn/ui components, director
 **Phase 1:** Foundation & Core Scoring
 
 ### Active Plan
-**Plan 01-02:** Database Schema & Services Integration (Next)
+**Plan 01-04:** Core Scoring Engine (Next)
 
 ### Status
-**Executing Phase 1** - 1 of 5 plans complete
+**Executing Phase 1** - 3 of 5 plans complete
 
 ### Progress
 ```
-Project: [█░░░░░░░░░░░░░░░░░░░] 3% (Phase 1: 1/5 plans complete)
-Phase 1: [████░░░░░░░░░░░░░░░░] 20% (1/5 plans complete)
+Project: [████░░░░░░░░░░░░░░░░] 9% (Phase 1: 3/5 plans complete)
+Phase 1: [████████████░░░░░░░░] 60% (3/5 plans complete)
 
 Milestone: Technical Foundation Established
 ```
@@ -60,8 +60,8 @@ Milestone: Technical Foundation Established
 
 ### Velocity
 - **Phases completed:** 0/7
-- **Plans completed:** 1/5 (Phase 1)
-- **Requirements implemented:** 3/81 (INFRA-01, INFRA-05, INFRA-06)
+- **Plans completed:** 3/5 (Phase 1)
+- **Requirements implemented:** 7/81 (INFRA-01, INFRA-05, INFRA-06, INFRA-07, DB-01, DB-02, DB-03)
 
 ### Quality
 - **Requirement coverage:** 81/81 mapped (100%)
@@ -77,6 +77,9 @@ Milestone: Technical Foundation Established
 - **Tailwind CSS v4 with @theme syntax:** Using new @theme syntax instead of v3 CSS variables (Plan 01-01)
 - **Sonner for notifications:** Replaced deprecated toast component with recommended sonner (Plan 01-01)
 - **Vitest for testing:** Chose Vitest over Jest for faster test execution and better Vite integration (Plan 01-01)
+- **Sample O*NET data for development:** Generate realistic sample data instead of requiring full download (Plan 01-03)
+- **Windows-friendly version pointer:** Use current.json instead of symlink for cross-platform compatibility (Plan 01-03)
+- **Three-tier data freshness system:** Green/yellow/red indicators with confidence scores address stale data pitfall (Plan 01-03)
 
 ---
 
@@ -100,6 +103,9 @@ Milestone: Technical Foundation Established
 | shadcn/ui components | High-quality, accessible UI components without heavy framework lock-in | 2026-03-30 |
 | Dashboard is optional | Plans deliver value without forced engagement, respects user agency | 2026-03-30 |
 | Defer admin panel | Use Supabase Dashboard + Stripe Dashboard for MVP monitoring | 2026-03-30 |
+| Sample O*NET data for dev | Enables local development without 100MB+ download, real data added later | 2026-04-01 |
+| Windows-friendly version pointer | JSON redirect instead of symlink for cross-platform compatibility | 2026-04-01 |
+| Three-tier freshness system | Green/yellow/red with confidence scores addresses stale data pitfall | 2026-04-01 |
 | Programmatic SEO pages | Top 50 job titles get dedicated landing pages for organic traffic | 2026-03-30 |
 | Phase 01 P01 | 16 | 6 tasks | 26 files |
 
@@ -122,6 +128,10 @@ Milestone: Technical Foundation Established
 - Groq API (fallback LLM)
 - Stripe (one-time payments)
 
+**Data Processing:**
+- csv-parse (O*NET CSV parsing)
+- tsx (TypeScript script execution)
+
 **Tooling:**
 - Sharp (share card image generation)
 - @vercel/og (Open Graph images for social media previews)
@@ -131,12 +141,16 @@ Milestone: Technical Foundation Established
 - Vercel (free tier, zero infrastructure cost)
 
 **Data Sources:**
-- O*NET bulk data (pre-processed CSVs → JSON)
+- O*NET bulk data (versioned JSON in public/data/onet-v28.3/, currently sample data)
 - Published AI exposure research (Eloundou et al. "GPTs are GPTs", Felten et al.)
 
 ### Architectural Patterns
 
 1. **Deterministic Scoring Engine:** Pure TypeScript functions for 4-layer risk algorithm (AI exposure + task automation + industry modifier + experience modifier). No LLM involvement in scoring.
+
+2. **Versioned Data Pipeline:** O*NET CSVs → parsed JSON in versioned directories (onet-v28.3/) with current.json pointer for easy updates.
+
+3. **Data Freshness Transparency:** Three-tier system (fresh/aging/stale) with visual indicators and confidence scores addresses stale data pitfall.
 
 2. **Static Data Pre-processing:** O*NET CSVs transformed to optimized JSON at build time, served as static assets (fast, no DB queries, CDN-cacheable).
 
@@ -211,7 +225,27 @@ Research identified 8 critical pitfalls with prevention strategies:
 
 ### Recent Changes
 
+**2026-04-01:**
+- ✅ **Completed Plan 01-03:** O*NET Data Pipeline
+  - Created CSV download and parsing infrastructure
+  - Generated sample O*NET data (5 occupations, tasks, skills, activities)
+  - Implemented versioned JSON storage in public/data/onet-v28.3/
+  - Built type-safe data loader with SSR/client hybrid loading
+  - Created freshness calculation system (green/yellow/red confidence)
+  - Added transparency UI components (footer, banner, badges)
+  - 7 tasks completed, 21 files created, 4 commits, 13 minutes duration
+  - TypeScript compiling successfully, all verifications passed
+
 **2026-03-31:**
+- ✅ **Completed Plan 01-02:** Database Schema & Services Integration
+  - Set up Supabase project with PostgreSQL database
+  - Created 6 core tables (users, assessments, pivot_plans, payments, onet_*, payment_events)
+  - Configured Row Level Security policies for all tables
+  - Integrated Supabase Auth with server-side utilities
+  - Set up Resend email service and Stripe payment integration
+  - Created database query utilities and types
+  - Build passing, all integrations configured
+
 - ✅ **Completed Plan 01-01:** Project Setup & Infrastructure Foundation
   - Initialized Next.js 16.2.1 with TypeScript 6.0.2, Tailwind CSS 4.2.2
   - Configured shadcn/ui with 9 components (New York style, Zinc base)
@@ -236,16 +270,16 @@ Research identified 8 critical pitfalls with prevention strategies:
 ## Session Continuity
 
 ### What Just Happened
-Completed Plan 01-01 (Project Setup & Infrastructure Foundation). Established Next.js 16 with TypeScript, Tailwind v4, shadcn/ui components, project directory structure, environment variables, Vercel deployment config, and Vitest test infrastructure. All 6 tasks executed, build passing, ready for Plan 01-02.
+Completed Plan 01-03 (O*NET Data Pipeline). Established complete data pipeline from CSV download to UI transparency. Created parsing infrastructure with sample data fallback, implemented type-safe data loader with SSR/client support, built three-tier freshness system (green/yellow/red), and added transparency components (footer disclaimer, freshness banner, confidence badges). All 7 tasks executed, TypeScript passing, ready for Plan 01-04.
 
 ### What's Next
-Execute Plan 01-02: Database Schema & Services Integration. Set up Supabase project, create database schema (users, assessments, pivot_plans, payments tables), configure Row Level Security policies, integrate Supabase Auth, and set up email service (Resend).
+Execute Plan 01-04: Core Scoring Engine. Implement the 4-layer AI displacement risk algorithm (AI exposure, task automation, industry modifier, experience modifier). Create scoring utilities, occupation mapping, and risk calculation functions. Integrate O*NET data loader for occupation analysis.
 
 ### Context for Next Agent
-- **Plan 01-01 complete:** 8 commits (1228ef4 through 1cfc154), SUMMARY.md created
-- **Infrastructure ready:** Next.js, TypeScript, Tailwind, shadcn/ui, Vitest all configured
-- **Next task:** Supabase setup, database schema, RLS policies, email integration
-- **Key files:** See 01-01-SUMMARY.md for complete file list and verification
+- **Plans 01-01, 01-02, 01-03 complete:** Infrastructure, Database, and O*NET Data Pipeline established
+- **Next task:** Implement core scoring engine (4-layer risk algorithm)
+- **Key files available:** O*NET data loader (`lib/data/onet-loader.ts`), types (`lib/data/types.ts`), freshness system (`lib/data/freshness.ts`)
+- **Data ready:** Sample O*NET data in `public/data/onet-v28.3/` (5 occupations for testing)
 - **Build status:** PASSING - no TypeScript or build errors
 
 ---
