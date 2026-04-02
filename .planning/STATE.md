@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-02T07:34:20.656Z"
+last_updated: "2026-04-02T07:37:55.650Z"
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 0
-  completed_plans: 2
+  completed_plans: 1
 ---
 
 # Project State: Unautomatable
@@ -86,6 +86,8 @@ Milestone: Technical Foundation Established
 - [Phase 02]: Displayed modifier layers as multipliers in legend/tooltip while charting normalized values for cross-layer comparison.
 - [Phase 02]: Use shadcn Command (cmdk) for job title disambiguation with confidence badges.
 - [Phase 02]: Persist anonymous assessment drafts in sessionStorage with Zod validation before hydration.
+- [Phase 02]: Use explicit score cutoffs in results UI to keep risk-band color behavior deterministic.
+- [Phase 02]: Represent layer modifiers as multipliers in labels/tooltips while charting normalized values for readability.
 
 ## Accumulated Context
 
@@ -114,6 +116,7 @@ Milestone: Technical Foundation Established
 | Phase 01 P01 | 16 | 6 tasks | 26 files |
 | Phase 02 P02 | 1 | 3 tasks | 7 files |
 | Phase 02 P01 | 95 | 3 tasks | 15 files |
+| Phase 02 P02 | 24 | 3 tasks | 7 files |
 
 ### Technology Stack Summary
 
