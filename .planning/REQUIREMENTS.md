@@ -85,11 +85,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Support & Legal (LEGAL)
 
-- [ ] **LEGAL-01**: Site has Help/FAQ page explaining methodology and common questions
+- [x] **LEGAL-01**: Site has Help/FAQ page explaining methodology and common questions
 - [ ] **LEGAL-02**: Site has Privacy Policy page (GDPR/CCPA compliant)
 - [ ] **LEGAL-03**: Site has Terms of Service page
-- [ ] **LEGAL-04**: Site has contact/support mechanism (email form or mailto link)
-- [ ] **LEGAL-05**: Site documents research methodology with academic citations (O*NET, Eloundou, Felten)
+- [x] **LEGAL-04**: Site has contact/support mechanism (email form or mailto link)
+- [x] **LEGAL-05**: Site documents research methodology with academic citations (O*NET, Eloundou, Felten)
 
 ### Technical Infrastructure (INFRA)
 
@@ -231,11 +231,11 @@ Which phases cover which requirements. Populated during roadmap creation (2026-0
 | TRACK-04 | Phase 6 | Pending |
 | TRACK-05 | Phase 6 | Pending |
 | TRACK-06 | Phase 6 | Pending |
-| LEGAL-01 | Phase 2 | Pending |
+| LEGAL-01 | Phase 2 | Complete |
 | LEGAL-02 | Phase 3 | Pending |
 | LEGAL-03 | Phase 3 | Pending |
-| LEGAL-04 | Phase 2 | Pending |
-| LEGAL-05 | Phase 2 | Pending |
+| LEGAL-04 | Phase 2 | Complete |
+| LEGAL-05 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 81 total
