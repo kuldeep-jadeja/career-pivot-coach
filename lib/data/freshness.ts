@@ -6,6 +6,7 @@
  */
 
 import type { DataFreshnessLevel } from './types';
+import { loadManifest } from './onet-loader';
 
 /**
  * Calculate data freshness based on last modified date
@@ -169,4 +170,23 @@ export function getRecommendedAction(level: DataFreshnessLevel): string | null {
     case 'stale':
       return 'We recommend supplementing this analysis with current industry research and job postings.';
   }
+}
+
+/**
+ * Consolidated data freshness payload for legal/transparency pages.
+ */
+export async function getDataFreshness(): Promise<{
+  version: string;
+  releaseDate: string;
+  downloadDate: string;
+  freshnessLevel: DataFreshnessLevel;
+}> {
+  const manifest = await loadManifest();
+
+  return {
+    version: manifest.version,
+    releaseDate: manifest.releaseDate,
+    downloadDate: manifest.downloadDate,
+    freshnessLevel: calculateFreshness(manifest.releaseDate),
+  };
 }
