@@ -58,8 +58,12 @@ export async function calculateAndSaveAssessment(input: CalculateAssessmentInput
     validated.jobTitle.title;
 
   try {
-    const supabase = (await createServerSupabaseClient()) as any;
-    await supabase.from('assessments').insert({
+    // Use admin client to bypass RLS for anonymous assessments
+    // TODO: Replace with proper RLS policy once auth is implemented (Phase 3)
+    const { createAdminClient } = await import('@/lib/db/supabase');
+    const supabase = createAdminClient();
+    
+    const { error } = await supabase.from('assessments').insert({
       id: assessmentId,
       job_title: canonicalJobTitle,
       occupation_code: validated.jobTitle.code,
@@ -76,6 +80,10 @@ export async function calculateAndSaveAssessment(input: CalculateAssessmentInput
       anonymous_id: null,
       user_id: null,
     });
+    
+    if (error) {
+      console.error('Failed to persist assessment:', error);
+    }
   } catch (error) {
     console.error('Failed to persist assessment', error);
   }
