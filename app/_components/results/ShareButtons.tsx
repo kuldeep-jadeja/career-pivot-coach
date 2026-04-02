@@ -30,7 +30,7 @@ export function ShareButtons({ assessmentId, jobTitle, riskScore }: ShareButtons
   };
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/results/${assessmentId}`;
+    const url = `${window.location.origin}/results?id=${assessmentId}`;
     const title = `My AI Displacement Risk: ${riskScore}%`;
     const text = `I assessed my career's AI risk. ${jobTitle} has a ${riskScore}% displacement risk. Check yours!`;
 
@@ -46,9 +46,14 @@ export function ShareButtons({ assessmentId, jobTitle, riskScore }: ShareButtons
   };
 
   const handleCopyLink = async () => {
-    const url = `${window.location.origin}/results/${assessmentId}`;
-    await navigator.clipboard.writeText(url);
-    toast.success('Link copied!');
+    try {
+      const url = `${window.location.origin}/results?id=${assessmentId}`;
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied!');
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+      toast.error('Failed to copy link. Please try again.');
+    }
   };
 
   return (
