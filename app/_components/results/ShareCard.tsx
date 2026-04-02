@@ -33,20 +33,57 @@ export function ShareCard({ jobTitle, riskScore, frame, className, id = 'share-c
   return (
     <div
       id={id}
-      className={cn(
-        'relative h-[630px] w-[1200px] overflow-hidden rounded-2xl bg-slate-900 p-16 text-white',
-        className
-      )}
+      className={cn('relative overflow-hidden rounded-2xl', className)}
+      style={{
+        width: '1200px',
+        height: '630px',
+        backgroundColor: '#0f172a',
+        padding: '64px',
+        color: '#ffffff',
+      }}
     >
-      <div className="flex h-full flex-col items-center justify-center text-center">
-        <div className="mb-4 text-[144px] font-bold leading-none" style={{ color: scoreColor }}>
+      <div
+        style={{
+          display: 'flex',
+          height: '100%',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+        }}
+      >
+        <div
+          style={{
+            marginBottom: '16px',
+            fontSize: '144px',
+            fontWeight: 700,
+            lineHeight: 1,
+            color: scoreColor,
+          }}
+        >
           {safeScore}%
         </div>
-        <div className="mb-8 text-5xl text-slate-300">AI Displacement Risk</div>
-        <div className="mb-12 max-w-[900px] text-4xl text-slate-400">{jobTitle}</div>
-        <div className="text-2xl italic text-slate-500">"{FRAME_TEXT[frame]}"</div>
+        <div style={{ marginBottom: '32px', fontSize: '48px', color: '#cbd5e1' }}>
+          AI Displacement Risk
+        </div>
+        <div style={{ marginBottom: '48px', maxWidth: '900px', fontSize: '36px', color: '#94a3b8' }}>
+          {jobTitle}
+        </div>
+        <div style={{ fontSize: '24px', fontStyle: 'italic', color: '#64748b' }}>
+          "{FRAME_TEXT[frame]}"
+        </div>
       </div>
-      <div className="absolute bottom-10 left-0 right-0 text-center text-xl text-slate-600">
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '40px',
+          left: 0,
+          right: 0,
+          textAlign: 'center',
+          fontSize: '20px',
+          color: '#475569',
+        }}
+      >
         unautomatable.ai — Assess your career risk
       </div>
     </div>
