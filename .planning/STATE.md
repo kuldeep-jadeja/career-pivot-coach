@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-01T12:01:00.883Z"
+last_updated: "2026-04-02T07:34:20.656Z"
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 0
-  completed_plans: 0
+  completed_plans: 2
 ---
 
 # Project State: Unautomatable
@@ -82,6 +82,10 @@ Milestone: Technical Foundation Established
 - **Three-tier data freshness system:** Green/yellow/red indicators with confidence scores address stale data pitfall (Plan 01-03)
 
 ---
+- [Phase 02]: Kept explicit 5-band score thresholds in visualization components to preserve deterministic risk color mapping.
+- [Phase 02]: Displayed modifier layers as multipliers in legend/tooltip while charting normalized values for cross-layer comparison.
+- [Phase 02]: Use shadcn Command (cmdk) for job title disambiguation with confidence badges.
+- [Phase 02]: Persist anonymous assessment drafts in sessionStorage with Zod validation before hydration.
 
 ## Accumulated Context
 
@@ -108,6 +112,8 @@ Milestone: Technical Foundation Established
 | Three-tier freshness system | Green/yellow/red with confidence scores addresses stale data pitfall | 2026-04-01 |
 | Programmatic SEO pages | Top 50 job titles get dedicated landing pages for organic traffic | 2026-03-30 |
 | Phase 01 P01 | 16 | 6 tasks | 26 files |
+| Phase 02 P02 | 1 | 3 tasks | 7 files |
+| Phase 02 P01 | 95 | 3 tasks | 15 files |
 
 ### Technology Stack Summary
 
