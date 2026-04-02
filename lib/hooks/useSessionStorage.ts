@@ -8,24 +8,28 @@ export function useSessionStorage<T>(
   schema: z.ZodSchema<T>,
   defaultValue: T
 ): [T, React.Dispatch<React.SetStateAction<T>>, boolean] {
-  const [value, setValue] = useState<T>(defaultValue);
+  const [value, setValue] = useState<T>(() => {
+    if (typeof window === "undefined") return defaultValue;
+
+    const stored = window.sessionStorage.getItem(key);
+    if (!stored) return defaultValue;
+
+    try {
+      const parsed = JSON.parse(stored);
+      const validated = schema.safeParse(parsed);
+      if (validated.success) {
+        return validated.data;
+      }
+    } catch (error) {
+      console.warn(`Failed to parse sessionStorage key "${key}"`, error);
+    }
+
+    return defaultValue;
+  });
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
-    const stored = window.sessionStorage.getItem(key);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        const validated = schema.safeParse(parsed);
-        if (validated.success) {
-          setValue(validated.data);
-        }
-      } catch (error) {
-        console.warn(`Failed to parse sessionStorage key "${key}"`, error);
-      }
-    }
 
     const timer = window.setTimeout(() => {
       setIsHydrated(true);
