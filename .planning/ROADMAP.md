@@ -102,7 +102,15 @@ Unautomatable delivers AI displacement risk assessment paired with actionable ca
 
 **Research Flag:** May need brief OG tag research (social platform image requirements vary by platform). Otherwise standard patterns.
 
-**Plans:** TBD
+**Plans:** 6 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Core form infrastructure (validation, fuzzy search, session persistence)
+- [ ] 02-02-PLAN.md — Results visualization components (gauge, breakdown, task list)
+- [ ] 02-03-PLAN.md — Complete 3-step assessment flow pages
+- [ ] 02-04-PLAN.md — Social sharing infrastructure (PNG download, OG images)
+- [ ] 02-05-PLAN.md — Email capture and delivery
+- [ ] 02-06-PLAN.md — Help, methodology, and legal pages
 
 ---
 

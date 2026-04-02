@@ -36,11 +36,27 @@ created: 2026-04-02
 
 ## Per-Task Verification Map
 
-To be populated during planning phase. Each task will map to specific test files and requirements.
-
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | TBD | TBD | TBD | `npm test` | TBD | ⬜ pending |
+| 02-01-T1 | 01 | 1 | ASSESS-02 | unit | `npm test tests/assessment/fuzzy-search.test.ts` | ❌ Wave 0 | ⬜ pending |
+| 02-01-T1 | 01 | 1 | ASSESS-03 | unit | `npm test tests/assessment/validation.test.ts` | ❌ Wave 0 | ⬜ pending |
+| 02-01-T2 | 01 | 1 | ASSESS-10 | unit | `npm test tests/assessment/session-storage.test.ts` | ❌ Wave 0 | ⬜ pending |
+| 02-01-T3 | 01 | 1 | ASSESS-02,03 | build | `npm run build` | ✅ | ⬜ pending |
+| 02-02-T1 | 02 | 1 | ASSESS-05 | unit | `npm test tests/components/RiskScoreGauge.test.tsx` | ❌ Wave 0 | ⬜ pending |
+| 02-02-T2 | 02 | 1 | ASSESS-05 | unit | `npm test tests/components/LayerBreakdown.test.tsx` | ❌ Wave 0 | ⬜ pending |
+| 02-02-T3 | 02 | 1 | ASSESS-06 | unit | `npm test tests/components/TaskRiskList.test.tsx` | ❌ Wave 0 | ⬜ pending |
+| 02-03-T1 | 03 | 2 | ASSESS-01 | build | `npm run build` | ✅ | ⬜ pending |
+| 02-03-T2 | 03 | 2 | ASSESS-04 | build | `npm run build` | ✅ | ⬜ pending |
+| 02-03-T3 | 03 | 2 | ASSESS-01 | integration | `npm test tests/assessment/anonymous-flow.test.tsx` | ❌ Wave 0 | ⬜ pending |
+| 02-04-T1 | 04 | 2 | VIRAL-01 | build | `npm run build` | ✅ | ⬜ pending |
+| 02-04-T2 | 04 | 2 | VIRAL-02 | build | `npm run build` | ✅ | ⬜ pending |
+| 02-04-T3 | 04 | 2 | VIRAL-01,02 | unit | `npm test tests/sharing/` | ❌ Wave 0 | ⬜ pending |
+| 02-05-T1 | 05 | 3 | ASSESS-08 | build | `npm run build` | ✅ | ⬜ pending |
+| 02-05-T2 | 05 | 3 | ASSESS-07,08 | build | `npm run build` | ✅ | ⬜ pending |
+| 02-05-T3 | 05 | 3 | ASSESS-08 | unit | `npm test tests/email/results-email.test.tsx` | ❌ Wave 0 | ⬜ pending |
+| 02-06-T1 | 06 | 3 | LEGAL-01,04,05 | build | `npm run build` | ✅ | ⬜ pending |
+| 02-06-T2 | 06 | 3 | LEGAL-01 | build | `npm run build` | ✅ | ⬜ pending |
+| 02-06-T3 | 06 | 3 | LEGAL-01,05 | unit | `npm test tests/legal/` | ❌ Wave 0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
