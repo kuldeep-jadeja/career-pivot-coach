@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-02T07:37:55.650Z"
+last_updated: "2026-04-02T07:58:31.599Z"
 progress:
   total_phases: 7
   completed_phases: 0
@@ -88,6 +88,8 @@ Milestone: Technical Foundation Established
 - [Phase 02]: Persist anonymous assessment drafts in sessionStorage with Zod validation before hydration.
 - [Phase 02]: Use explicit score cutoffs in results UI to keep risk-band color behavior deterministic.
 - [Phase 02]: Represent layer modifiers as multipliers in labels/tooltips while charting normalized values for readability.
+- [Phase 02]: Use html2canvas dynamic import with document.fonts.ready for reliable high-resolution PNG exports.
+- [Phase 02]: Export OG helper utilities (color/label/query parsing) from route for direct unit testing.
 
 ## Accumulated Context
 
@@ -117,6 +119,7 @@ Milestone: Technical Foundation Established
 | Phase 02 P02 | 1 | 3 tasks | 7 files |
 | Phase 02 P01 | 95 | 3 tasks | 15 files |
 | Phase 02 P02 | 24 | 3 tasks | 7 files |
+| Phase 02 P04 | 35 | 3 tasks | 9 files |
 
 ### Technology Stack Summary
 

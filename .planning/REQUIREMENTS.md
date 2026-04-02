@@ -22,8 +22,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Viral Growth Mechanic (VIRAL)
 
-- [ ] **VIRAL-01**: User can download shareable visual score card as image (PNG)
-- [ ] **VIRAL-02**: Risk score results page has dynamic OG meta tags for social link previews
+- [x] **VIRAL-01**: User can download shareable visual score card as image (PNG)
+- [x] **VIRAL-02**: Risk score results page has dynamic OG meta tags for social link previews
 - [ ] **VIRAL-03**: System generates programmatic SEO pages for top 50 job titles at /risk/[job-slug]
 
 ### Account & Authentication (AUTH)
@@ -186,8 +186,8 @@ Which phases cover which requirements. Populated during roadmap creation (2026-0
 | ASSESS-08 | Phase 2 | Pending |
 | ASSESS-09 | Phase 2 | Pending |
 | ASSESS-10 | Phase 2 | Complete |
-| VIRAL-01 | Phase 2 | Pending |
-| VIRAL-02 | Phase 2 | Pending |
+| VIRAL-01 | Phase 2 | Complete |
+| VIRAL-02 | Phase 2 | Complete |
 | VIRAL-03 | Phase 7 | Pending |
 | AUTH-01 | Phase 3 | Pending |
 | AUTH-02 | Phase 3 | Pending |
