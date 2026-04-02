@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-02T07:58:31.599Z"
+last_updated: "2026-04-02T08:11:00.497Z"
 progress:
   total_phases: 7
   completed_phases: 0
@@ -90,6 +90,8 @@ Milestone: Technical Foundation Established
 - [Phase 02]: Represent layer modifiers as multipliers in labels/tooltips while charting normalized values for readability.
 - [Phase 02]: Use html2canvas dynamic import with document.fonts.ready for reliable high-resolution PNG exports.
 - [Phase 02]: Export OG helper utilities (color/label/query parsing) from route for direct unit testing.
+- [Phase 02]: Use dedicated (assessment) route-group pages at /start, /details, /results for anonymous flow.
+- [Phase 02]: Keep assessment persistence best-effort in server action so score results still render if DB insert fails.
 
 ## Accumulated Context
 
@@ -120,6 +122,7 @@ Milestone: Technical Foundation Established
 | Phase 02 P01 | 95 | 3 tasks | 15 files |
 | Phase 02 P02 | 24 | 3 tasks | 7 files |
 | Phase 02 P04 | 35 | 3 tasks | 9 files |
+| Phase 02 P03 | 74 | 3 tasks | 8 files |
 
 ### Technology Stack Summary
 

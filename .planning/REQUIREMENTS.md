@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Core Assessment Flow (ASSESS)
 
-- [ ] **ASSESS-01**: User can take free risk assessment without creating an account (< 5 min)
+- [x] **ASSESS-01**: User can take free risk assessment without creating an account (< 5 min)
 - [x] **ASSESS-02**: User can input job title with fuzzy matching to O*NET occupation codes
 - [x] **ASSESS-03**: User can input industry and years of experience
 - [x] **ASSESS-04**: System calculates AI displacement risk score (0-100) using 4-layer deterministic algorithm
@@ -17,7 +17,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **ASSESS-06**: User sees task-level breakdown showing which tasks are at risk vs. safe
 - [ ] **ASSESS-07**: User can provide email to receive results
 - [ ] **ASSESS-08**: System sends risk score email via Resend
-- [ ] **ASSESS-09**: Assessment is fully mobile responsive
+- [x] **ASSESS-09**: Assessment is fully mobile responsive
 - [x] **ASSESS-10**: Assessment saves progress automatically (anonymous users get session storage)
 
 ### Viral Growth Mechanic (VIRAL)
@@ -176,7 +176,7 @@ Which phases cover which requirements. Populated during roadmap creation (2026-0
 | INFRA-10 | Phase 5 | Pending |
 | INFRA-11 | Phase 1 | Pending |
 | INFRA-12 | Phase 1 | Pending |
-| ASSESS-01 | Phase 2 | Pending |
+| ASSESS-01 | Phase 2 | Complete |
 | ASSESS-02 | Phase 2 | Complete |
 | ASSESS-03 | Phase 2 | Complete |
 | ASSESS-04 | Phase 2 | Complete |
@@ -184,7 +184,7 @@ Which phases cover which requirements. Populated during roadmap creation (2026-0
 | ASSESS-06 | Phase 2 | Complete |
 | ASSESS-07 | Phase 2 | Pending |
 | ASSESS-08 | Phase 2 | Pending |
-| ASSESS-09 | Phase 2 | Pending |
+| ASSESS-09 | Phase 2 | Complete |
 | ASSESS-10 | Phase 2 | Complete |
 | VIRAL-01 | Phase 2 | Complete |
 | VIRAL-02 | Phase 2 | Complete |
