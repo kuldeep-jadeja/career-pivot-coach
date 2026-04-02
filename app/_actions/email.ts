@@ -3,22 +3,15 @@
 import { z } from 'zod';
 
 import { AssessmentResultsEmail } from '@/app/_components/emails/AssessmentResults';
+import { getRiskLevel } from '@/lib/email/assessment-results';
 import { resend } from '@/lib/email/resend';
 
 const emailSchema = z.object({
-  to: z.email('Invalid email address'),
+  to: z.string().trim().email('Invalid email address'),
   jobTitle: z.string().min(1),
   riskScore: z.number().min(0).max(100),
   assessmentId: z.string().min(1),
 });
-
-function getRiskLevel(score: number): string {
-  if (score <= 20) return 'Low Risk';
-  if (score <= 40) return 'Moderate Risk';
-  if (score <= 60) return 'Elevated Risk';
-  if (score <= 80) return 'High Risk';
-  return 'Very High Risk';
-}
 
 export async function sendAssessmentResults(input: z.infer<typeof emailSchema>) {
   try {

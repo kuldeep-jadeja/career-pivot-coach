@@ -65,7 +65,7 @@ export function EmailCapture({ assessmentId, jobTitle, riskScore }: EmailCapture
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="assessment-email" className="text-base">
-          Get results in your inbox
+          Email Results to Me
         </Label>
         <div className="flex flex-col gap-2 sm:flex-row">
           <div className="relative flex-1">
