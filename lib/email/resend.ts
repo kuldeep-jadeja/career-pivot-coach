@@ -20,7 +20,7 @@
 import { Resend } from 'resend';
 
 // Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+export const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email configuration
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Unautomatable <onboarding@resend.dev>';
