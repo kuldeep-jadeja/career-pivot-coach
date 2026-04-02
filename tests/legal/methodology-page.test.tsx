@@ -21,21 +21,25 @@ describe('Methodology Page', () => {
     const { default: MethodologyPage } = await import('@/app/(marketing)/methodology/page');
     render(await MethodologyPage());
 
-    expect(screen.getByText(/Research Methodology/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /Research Methodology/i, level: 1 })
+    ).toBeInTheDocument();
   });
 
   it('includes O*NET citation', async () => {
     const { default: MethodologyPage } = await import('@/app/(marketing)/methodology/page');
     render(await MethodologyPage());
 
-    expect(screen.getByText(/O\*NET Database/i)).toBeInTheDocument();
+    expect(screen.getByText(/O\*NET Database Version 28\.3/i)).toBeInTheDocument();
   });
 
   it('includes Eloundou et al. citation', async () => {
     const { default: MethodologyPage } = await import('@/app/(marketing)/methodology/page');
     render(await MethodologyPage());
 
-    expect(screen.getByText(/Eloundou/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Eloundou, T\., Manning, S\., Mishkin, P\., & Rock, D\./i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/GPTs are GPTs/i)).toBeInTheDocument();
   });
 
