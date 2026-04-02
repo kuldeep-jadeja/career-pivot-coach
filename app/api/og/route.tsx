@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
 
-function getScoreColor(score: number): string {
+export function getScoreColor(score: number): string {
   if (score <= 20) return '#22c55e';
   if (score <= 40) return '#eab308';
   if (score <= 60) return '#f97316';
@@ -11,7 +11,7 @@ function getScoreColor(score: number): string {
   return '#b91c1c';
 }
 
-function getRiskLabel(score: number): string {
+export function getRiskLabel(score: number): string {
   if (score <= 20) return 'Low Risk';
   if (score <= 40) return 'Moderate Risk';
   if (score <= 60) return 'Elevated Risk';
@@ -19,11 +19,16 @@ function getRiskLabel(score: number): string {
   return 'Very High Risk';
 }
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
+export function parseOgParams(searchParams: URLSearchParams) {
   const jobTitle = searchParams.get('jobTitle') || 'Your Role';
   const rawScore = Number.parseInt(searchParams.get('riskScore') || '50', 10);
   const riskScore = Number.isNaN(rawScore) ? 50 : Math.max(0, Math.min(100, rawScore));
+  return { jobTitle, riskScore };
+}
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const { jobTitle, riskScore } = parseOgParams(searchParams);
 
   const scoreColor = getScoreColor(riskScore);
   const riskLabel = getRiskLabel(riskScore);
