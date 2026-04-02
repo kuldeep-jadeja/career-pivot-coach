@@ -25,8 +25,8 @@ export function ShareButtons({ assessmentId, jobTitle, riskScore }: ShareButtons
       await downloadCard('share-card-full', `ai-risk-${assessmentId}.png`);
       toast.success('Image downloaded!');
     } catch (error) {
-      console.error('[ShareButtons] Download failed:', error);
-      toast.error(`Failed to download image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to download image:', error);
+      toast.error('Failed to download image. Please try again.');
     }
   };
 
