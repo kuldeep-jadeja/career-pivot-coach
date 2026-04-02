@@ -45,20 +45,22 @@ export function RiskScoreGauge({ score, className }: RiskScoreGaugeProps) {
         className
       )}
     >
-      <ResponsiveContainer width="100%" aspect={1}>
-        <RadialBarChart
-          cx="50%"
-          cy="50%"
-          innerRadius="60%"
-          outerRadius="90%"
-          barSize={24}
-          data={data}
-          startAngle={180}
-          endAngle={0}
-        >
-          <RadialBar background={{ fill: '#e5e7eb' }} dataKey="value" cornerRadius={12} />
-        </RadialBarChart>
-      </ResponsiveContainer>
+      <div style={{ width: '100%', height: '280px' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <RadialBarChart
+            cx="50%"
+            cy="50%"
+            innerRadius="60%"
+            outerRadius="90%"
+            barSize={24}
+            data={data}
+            startAngle={180}
+            endAngle={0}
+          >
+            <RadialBar background={{ fill: '#e5e7eb' }} dataKey="value" cornerRadius={12} />
+          </RadialBarChart>
+        </ResponsiveContainer>
+      </div>
 
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span
