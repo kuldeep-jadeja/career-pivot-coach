@@ -15,8 +15,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **ASSESS-04**: System calculates AI displacement risk score (0-100) using 4-layer deterministic algorithm
 - [x] **ASSESS-05**: User sees personalized risk score with visual presentation (charts, gauges)
 - [x] **ASSESS-06**: User sees task-level breakdown showing which tasks are at risk vs. safe
-- [ ] **ASSESS-07**: User can provide email to receive results
-- [ ] **ASSESS-08**: System sends risk score email via Resend
+- [x] **ASSESS-07**: User can provide email to receive results
+- [x] **ASSESS-08**: System sends risk score email via Resend
 - [x] **ASSESS-09**: Assessment is fully mobile responsive
 - [x] **ASSESS-10**: Assessment saves progress automatically (anonymous users get session storage)
 
@@ -182,8 +182,8 @@ Which phases cover which requirements. Populated during roadmap creation (2026-0
 | ASSESS-04 | Phase 2 | Complete |
 | ASSESS-05 | Phase 2 | Complete |
 | ASSESS-06 | Phase 2 | Complete |
-| ASSESS-07 | Phase 2 | Pending |
-| ASSESS-08 | Phase 2 | Pending |
+| ASSESS-07 | Phase 2 | Complete |
+| ASSESS-08 | Phase 2 | Complete |
 | ASSESS-09 | Phase 2 | Complete |
 | ASSESS-10 | Phase 2 | Complete |
 | VIRAL-01 | Phase 2 | Complete |
